@@ -1,18 +1,22 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { useState } from "react"
+import { motion } from "framer-motion";
+import { useState } from "react";
 
 interface GlitchTextProps {
-  children: string
-  className?: string
+  children: string;
+  className?: string;
 }
 
 export function GlitchText({ children, className }: GlitchTextProps) {
-  const [isHovered, setIsHovered] = useState(false)
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <motion.div className={className} onHoverStart={() => setIsHovered(true)} onHoverEnd={() => setIsHovered(false)}>
+    <motion.div
+      className={className}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+    >
       <motion.span
         style={{ display: "inline-block" }}
         animate={
@@ -31,6 +35,5 @@ export function GlitchText({ children, className }: GlitchTextProps) {
         {children}
       </motion.span>
     </motion.div>
-  )
+  );
 }
-

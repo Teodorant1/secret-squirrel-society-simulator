@@ -1,5 +1,10 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { ThemeSelector } from "@/components/theme-selector"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { ThemeSelector } from "@/components/theme-selector";
 
 const FAQS = [
   {
@@ -9,7 +14,8 @@ const FAQS = [
   },
   {
     question: "How many players are needed?",
-    answer: "The game is designed for 5-10 players, with different role distributions based on the player count.",
+    answer:
+      "The game is designed for 5-10 players, with different role distributions based on the player count.",
   },
   {
     question: "How do the theme presets work?",
@@ -26,12 +32,12 @@ const FAQS = [
     answer:
       "Your custom theme settings are automatically saved to your account when you're logged in. You can switch between your custom theme and presets at any time.",
   },
-]
+];
 
 export default function FAQPage() {
   return (
     <div className="container max-w-3xl py-12">
-      <h1 className="text-4xl font-bold mb-8">Frequently Asked Questions</h1>
+      <h1 className="mb-8 text-4xl font-bold">Frequently Asked Questions</h1>
       <Accordion type="single" collapsible className="w-full">
         {FAQS.map((faq, index) => (
           <AccordionItem key={index} value={`item-${index}`}>
@@ -42,6 +48,5 @@ export default function FAQPage() {
       </Accordion>
       <ThemeSelector />
     </div>
-  )
+  );
 }
-

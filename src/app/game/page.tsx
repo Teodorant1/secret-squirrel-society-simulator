@@ -1,14 +1,16 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { ThemeSelector } from "@/components/theme-selector"
-import { Crown, Scroll, Users } from "lucide-react"
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ThemeSelector } from "@/components/theme-selector";
+import { Crown, Scroll, Users } from "lucide-react";
 
 export default function GamePage() {
-  const [gamePhase, setGamePhase] = useState<"lobby" | "playing" | "ended">("lobby")
+  const [gamePhase, setGamePhase] = useState<"lobby" | "playing" | "ended">(
+    "lobby",
+  );
 
   return (
     <div className="container max-w-5xl py-8">
@@ -42,10 +44,14 @@ export default function GamePage() {
         </Card>
       </div>
 
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-8 grid gap-8">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="mt-8 grid gap-8"
+      >
         {gamePhase === "lobby" && (
           <div className="text-center">
-            <h2 className="text-2xl font-bold mb-4">Game Lobby</h2>
+            <h2 className="mb-4 text-2xl font-bold">Game Lobby</h2>
             <Button size="lg" onClick={() => setGamePhase("playing")}>
               Start Game
             </Button>
@@ -54,7 +60,7 @@ export default function GamePage() {
 
         {gamePhase === "playing" && (
           <div className="grid gap-4">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
               {Array.from({ length: 5 }).map((_, i) => (
                 <Card key={i} className="p-4 text-center">
                   <div className="font-semibold">Player {i + 1}</div>
@@ -71,6 +77,5 @@ export default function GamePage() {
       </motion.div>
       <ThemeSelector />
     </div>
-  )
+  );
 }
-

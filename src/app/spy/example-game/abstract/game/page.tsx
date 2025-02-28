@@ -133,37 +133,39 @@ export default function AbstractGameState() {
 
 function ParticleField() {
   return (
-    <div className="pointer-events-none fixed inset-0">
-      {Array.from({ length: 30 }).map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute h-0.5 w-0.5 rounded-full bg-primary/10"
-          initial={{
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
-            scale: Math.random() * 0.5 + 0.5,
-          }}
-          animate={{
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
-            scale: [1, 1.5, 1],
-          }}
-          transition={{
-            duration: Math.random() * 30 + 20,
-            repeat: Number.POSITIVE_INFINITY,
-            ease: "linear",
-            scale: {
-              duration: Math.random() * 2 + 1,
+    <div className="pointer-events-none fixed inset-0 overflow-hidden">
+      {/* Using a flex/grid layout or CSS variables for responsive sizing */}
+      <div className="relative h-full w-full">
+        {Array.from({ length: 30 }).map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute h-0.5 w-0.5 rounded-full bg-primary/10"
+            initial={{
+              x: `calc(${Math.random() * 100}vw)`, // Randomized positioning within the viewport width
+              y: `calc(${Math.random() * 100}vh)`, // Randomized positioning within the viewport height
+              scale: Math.random() * 0.5 + 0.5, // Randomized scale between 0.5 and 1.0
+            }}
+            animate={{
+              x: `calc(${Math.random() * 100}vw)`, // Randomized animation to different positions
+              y: `calc(${Math.random() * 100}vh)`, // Randomized animation to different positions
+              scale: [1, 1.5, 1], // Animation scale effect
+            }}
+            transition={{
+              duration: Math.random() * 30 + 20, // Randomized duration for each particle's movement
               repeat: Number.POSITIVE_INFINITY,
-              ease: "easeInOut",
-            },
-          }}
-        />
-      ))}
+              ease: "linear",
+              scale: {
+                duration: Math.random() * 2 + 1,
+                repeat: Number.POSITIVE_INFINITY,
+                ease: "easeInOut",
+              },
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 }
-
 function SurveillanceCard({
   title,
   data,
@@ -233,7 +235,7 @@ function ProgressCard({
   progress,
   milestones,
   icon: Icon,
-  type,
+  // type,
 }: {
   title: string;
   progress: number;

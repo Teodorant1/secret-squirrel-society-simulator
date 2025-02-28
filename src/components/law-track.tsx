@@ -1,24 +1,31 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { Scale } from "lucide-react"
-import { Skull } from "lucide-react"
-import { GlitchText } from "@/components/ui/glitch-text"
-import { Card } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { cn } from "@/lib/utils"
+import { motion } from "framer-motion";
+import { Scale } from "lucide-react";
+import { Skull } from "lucide-react";
+import { GlitchText } from "./effects/glitch-text";
+// import { GlitchText } from "./animations/glitch-text";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 
 interface LawTrackProps {
-  type: "liberal" | "fascist"
-  current: number
-  total: number
-  powers: Array<{ threshold: number; description: string }>
-  emergencyLevel: number
+  type: "liberal" | "fascist";
+  current: number;
+  total: number;
+  powers: Array<{ threshold: number; description: string }>;
+  emergencyLevel: number;
 }
 
-function LawTrack({ type, current, total, powers, emergencyLevel }: LawTrackProps) {
-  const isLiberal = type === "liberal"
-  const isNearVictory = current >= total - 1
+function LawTrack({
+  type,
+  current,
+  total,
+  powers,
+  emergencyLevel,
+}: LawTrackProps) {
+  const isLiberal = type === "liberal";
+  const isNearVictory = current >= total - 1;
 
   return (
     <Card className="p-4">
@@ -29,7 +36,7 @@ function LawTrack({ type, current, total, powers, emergencyLevel }: LawTrackProp
         transition={{ duration: 0.5 }}
       >
         <motion.h3
-          className="font-semibold flex items-center gap-2"
+          className="flex items-center gap-2 font-semibold"
           animate={{
             color: isNearVictory
               ? isLiberal
@@ -39,8 +46,13 @@ function LawTrack({ type, current, total, powers, emergencyLevel }: LawTrackProp
           }}
           transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
         >
-          {isLiberal ? <Scale className="h-4 w-4 text-blue-500" /> : <Skull className="h-4 w-4 text-red-500" />}
-          <GlitchText>{isLiberal ? "Liberal" : "Fascist"} Track</GlitchText>
+          {isLiberal ? (
+            <Scale className="h-4 w-4 text-blue-500" />
+          ) : (
+            <Skull className="h-4 w-4 text-red-500" />
+          )}
+
+          <GlitchText text={`${isLiberal ? "Liberal" : "Fascist"} Track`} />
         </motion.h3>
 
         <motion.div
@@ -51,7 +63,10 @@ function LawTrack({ type, current, total, powers, emergencyLevel }: LawTrackProp
         >
           <Progress
             value={(current / total) * 100}
-            className={cn(isLiberal ? "bg-blue-200" : "bg-red-200", "transition-all duration-1000")}
+            className={cn(
+              isLiberal ? "bg-blue-200" : "bg-red-200",
+              "transition-all duration-1000",
+            )}
           />
         </motion.div>
 
@@ -60,8 +75,12 @@ function LawTrack({ type, current, total, powers, emergencyLevel }: LawTrackProp
             <motion.div
               key={index}
               className={cn(
-                "p-2 rounded-md",
-                current >= power.threshold ? (isLiberal ? "bg-blue-500/10" : "bg-red-500/10") : "bg-muted",
+                "rounded-md p-2",
+                current >= power.threshold
+                  ? isLiberal
+                    ? "bg-blue-500/10"
+                    : "bg-red-500/10"
+                  : "bg-muted",
               )}
               whileHover={{
                 scale: 1.02,
@@ -88,7 +107,9 @@ function LawTrack({ type, current, total, powers, emergencyLevel }: LawTrackProp
                 animate={
                   current >= power.threshold
                     ? {
-                        textShadow: isLiberal ? "0 0 8px rgba(59, 130, 246, 0.5)" : "0 0 8px rgba(239, 68, 68, 0.5)",
+                        textShadow: isLiberal
+                          ? "0 0 8px rgba(59, 130, 246, 0.5)"
+                          : "0 0 8px rgba(239, 68, 68, 0.5)",
                       }
                     : {}
                 }
@@ -100,6 +121,5 @@ function LawTrack({ type, current, total, powers, emergencyLevel }: LawTrackProp
         </div>
       </motion.div>
     </Card>
-  )
+  );
 }
-

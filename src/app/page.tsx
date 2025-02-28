@@ -1,7 +1,5 @@
-import React from "react";
-import HomePage from "./spy/page";
-const page = () => {
-  return <HomePage />;
-};
+import { redirect } from "next/navigation";
 
-export default page;
+export default function RootPage() {
+  redirect("/spy");
+}

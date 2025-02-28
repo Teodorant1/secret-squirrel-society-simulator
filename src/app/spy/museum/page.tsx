@@ -1,22 +1,32 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Globe2, Clock, FileText, Map } from "lucide-react"
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Globe2, Clock, FileText, Map } from "lucide-react";
 
 export default function MuseumPage() {
-  const [selectedOperation, setSelectedOperation] = useState<string | null>(null)
+  const [selectedOperation, setSelectedOperation] = useState<string | null>(
+    null,
+  );
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-12 space-y-8">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-          <h1 className="text-4xl font-bold tracking-tight mb-4">Intelligence Archive</h1>
-          <p className="text-lg text-muted-foreground">Declassified operations and historical records</p>
+      <div className="container mx-auto space-y-8 py-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
+          <h1 className="mb-4 text-4xl font-bold tracking-tight">
+            Intelligence Archive
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            Declassified operations and historical records
+          </p>
         </motion.div>
 
         <Tabs defaultValue="timeline" className="space-y-8">
@@ -36,19 +46,21 @@ export default function MuseumPage() {
                   initial={{ opacity: 0, x: index % 2 ? 20 : -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
-                  className={`flex items-start gap-8 mb-8 ${index % 2 ? "flex-row-reverse" : ""}`}
+                  className={`mb-8 flex items-start gap-8 ${index % 2 ? "flex-row-reverse" : ""}`}
                 >
                   <div className="flex-1">
                     <Card className="p-6">
-                      <div className="flex items-start justify-between mb-4">
+                      <div className="mb-4 flex items-start justify-between">
                         <Badge variant="outline">{event.year}</Badge>
                         <Clock className="h-4 w-4 text-muted-foreground" />
                       </div>
-                      <h3 className="font-semibold mb-2">{event.title}</h3>
-                      <p className="text-sm text-muted-foreground">{event.description}</p>
+                      <h3 className="mb-2 font-semibold">{event.title}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {event.description}
+                      </p>
                     </Card>
                   </div>
-                  <div className="w-4 h-4 rounded-full bg-primary mt-8 relative z-10" />
+                  <div className="relative z-10 mt-8 h-4 w-4 rounded-full bg-primary" />
                   <div className="flex-1" />
                 </motion.div>
               ))}
@@ -65,14 +77,20 @@ export default function MuseumPage() {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <Card className="p-6 h-full flex flex-col">
-                    <div className="flex items-start justify-between mb-4">
+                  <Card className="flex h-full flex-col p-6">
+                    <div className="mb-4 flex items-start justify-between">
                       <Badge variant="outline">{operation.period}</Badge>
                       <FileText className="h-4 w-4 text-muted-foreground" />
                     </div>
-                    <h3 className="font-semibold mb-2">{operation.name}</h3>
-                    <p className="text-sm text-muted-foreground flex-1">{operation.summary}</p>
-                    <Button variant="ghost" className="mt-4" onClick={() => setSelectedOperation(operation.name)}>
+                    <h3 className="mb-2 font-semibold">{operation.name}</h3>
+                    <p className="flex-1 text-sm text-muted-foreground">
+                      {operation.summary}
+                    </p>
+                    <Button
+                      variant="ghost"
+                      className="mt-4"
+                      onClick={() => setSelectedOperation(operation.name)}
+                    >
                       View Details
                     </Button>
                   </Card>
@@ -83,11 +101,11 @@ export default function MuseumPage() {
 
           <TabsContent value="map" className="space-y-8">
             <Card className="p-6">
-              <div className="flex items-center justify-between mb-6">
+              <div className="mb-6 flex items-center justify-between">
                 <h3 className="text-xl font-semibold">Global Operations Map</h3>
                 <Globe2 className="h-5 w-5 text-muted-foreground" />
               </div>
-              <div className="aspect-video bg-muted rounded-lg relative overflow-hidden">
+              <div className="relative aspect-video overflow-hidden rounded-lg bg-muted">
                 <motion.div
                   className="absolute inset-0 bg-[url('/map-bg.svg')] opacity-50"
                   animate={{
@@ -102,7 +120,7 @@ export default function MuseumPage() {
                 {LOCATIONS.map((location, index) => (
                   <motion.div
                     key={index}
-                    className="absolute w-2 h-2 bg-primary rounded-full"
+                    className="absolute h-2 w-2 rounded-full bg-primary"
                     style={{
                       left: `${location.x}%`,
                       top: `${location.y}%`,
@@ -133,12 +151,14 @@ export default function MuseumPage() {
                   transition={{ delay: index * 0.1 }}
                 >
                   <Card className="p-6">
-                    <div className="flex items-start justify-between mb-4">
+                    <div className="mb-4 flex items-start justify-between">
                       <Badge variant="outline">{doc.classification}</Badge>
                       <Map className="h-4 w-4 text-muted-foreground" />
                     </div>
-                    <h3 className="font-semibold mb-2">{doc.title}</h3>
-                    <p className="text-sm text-muted-foreground mb-4">{doc.description}</p>
+                    <h3 className="mb-2 font-semibold">{doc.title}</h3>
+                    <p className="mb-4 text-sm text-muted-foreground">
+                      {doc.description}
+                    </p>
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>Reference: {doc.reference}</span>
                       <span>Date: {doc.date}</span>
@@ -156,20 +176,27 @@ export default function MuseumPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50"
+              className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
               onClick={() => setSelectedOperation(null)}
             >
               <motion.div
                 initial={{ opacity: 0, y: 100 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 100 }}
-                className="container mx-auto max-w-2xl mt-20"
+                className="container mx-auto mt-20 max-w-2xl"
                 onClick={(e) => e.stopPropagation()}
               >
                 <Card className="p-8">
-                  <h2 className="text-2xl font-bold mb-4">{selectedOperation}</h2>
-                  <p className="text-muted-foreground">Detailed operation information would be displayed here.</p>
-                  <Button className="mt-6" onClick={() => setSelectedOperation(null)}>
+                  <h2 className="mb-4 text-2xl font-bold">
+                    {selectedOperation}
+                  </h2>
+                  <p className="text-muted-foreground">
+                    Detailed operation information would be displayed here.
+                  </p>
+                  <Button
+                    className="mt-6"
+                    onClick={() => setSelectedOperation(null)}
+                  >
                     Close
                   </Button>
                 </Card>
@@ -179,14 +206,15 @@ export default function MuseumPage() {
         </AnimatePresence>
       </div>
     </div>
-  )
+  );
 }
 
 const TIMELINE_EVENTS = [
   {
     year: "1945",
     title: "Operation Paperclip",
-    description: "Scientific intelligence gathering operation in post-war Europe.",
+    description:
+      "Scientific intelligence gathering operation in post-war Europe.",
   },
   {
     year: "1960",
@@ -203,13 +231,14 @@ const TIMELINE_EVENTS = [
     title: "Project RYAN",
     description: "Strategic intelligence assessment operation.",
   },
-]
+];
 
 const OPERATIONS = [
   {
     name: "Operation Gold",
     period: "1950s",
-    summary: "Underground tunnel operation for intelligence gathering in Berlin.",
+    summary:
+      "Underground tunnel operation for intelligence gathering in Berlin.",
   },
   {
     name: "Project Corona",
@@ -221,7 +250,7 @@ const OPERATIONS = [
     period: "1970s",
     summary: "Underwater surveillance operation in strategic waters.",
   },
-]
+];
 
 const LOCATIONS = [
   { x: 25, y: 40 },
@@ -229,13 +258,14 @@ const LOCATIONS = [
   { x: 65, y: 45 },
   { x: 75, y: 30 },
   { x: 35, y: 60 },
-]
+];
 
 const ARCHIVE_DOCUMENTS = [
   {
     title: "Field Report: Berlin Station",
     classification: "Declassified",
-    description: "Analysis of intelligence gathering operations in divided Berlin.",
+    description:
+      "Analysis of intelligence gathering operations in divided Berlin.",
     reference: "DOC-1960-0531",
     date: "1960-05-31",
   },
@@ -260,5 +290,4 @@ const ARCHIVE_DOCUMENTS = [
     reference: "DOC-1988-0723",
     date: "1988-07-23",
   },
-]
-
+];

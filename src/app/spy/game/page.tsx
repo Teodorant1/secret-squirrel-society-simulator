@@ -1,81 +1,72 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ThemeSelector } from "@/components/theme-selector";
+import { CRTScanlines } from "@/components/effects/crt-scanlines";
+import { GlitchText } from "@/components/effects/glitch-text";
+import { TerminalText } from "@/components/effects/terminal-text";
 import { Crown, Scroll, Users } from "lucide-react";
 
 export default function GamePage() {
   const [gamePhase, setGamePhase] = useState<"lobby" | "playing" | "ended">(
     "lobby",
   );
+  const [seed] = useState(Math.random() * 1000);
 
   return (
     <div className="container max-w-5xl py-8">
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="p-6">
-          <div className="flex items-center gap-4">
-            <Users className="h-6 w-6" />
-            <div>
-              <h3 className="font-semibold">Players</h3>
-              <p className="text-sm text-muted-foreground">5/10 Connected</p>
+      <CRTScanlines seed={seed} />
+      <Card>
+        {gamePhase === "lobby" && (
+          <>
+            <GlitchText text={"Waiting for players..."} />
+            <div className="mt-4 flex gap-2">
+              <Button variant="outline">Start Game</Button>
+              <Button variant="outline">Leave Game</Button>
             </div>
-          </div>
-        </Card>
-        <Card className="p-6">
-          <div className="flex items-center gap-4">
+          </>
+        )}
+        {gamePhase === "playing" && (
+          <>
+            <TerminalText text={"Game in progress..."} />
+            <div className="mt-4 flex gap-2">
+              <Button>Next Round</Button>
+              <Button variant="destructive">End Game</Button>
+            </div>
+          </>
+        )}
+        {gamePhase === "ended" && (
+          <>
+            <GlitchText text={"Game Over!"} />
+            <div className="mt-4 flex gap-2">
+              <Button>Play Again</Button>
+              <Button>Main Menu</Button>
+            </div>
+          </>
+        )}
+      </Card>
+      <div className="mt-8 flex items-center justify-center gap-4">
+        <Card className="w-24">
+          <div className="flex items-center justify-center p-2">
             <Crown className="h-6 w-6" />
-            <div>
-              <h3 className="font-semibold">Current President</h3>
-              <p className="text-sm text-muted-foreground">Waiting...</p>
-            </div>
+            <span className="ml-2">100</span>
           </div>
         </Card>
-        <Card className="p-6">
-          <div className="flex items-center gap-4">
+        <Card className="w-24">
+          <div className="flex items-center justify-center p-2">
             <Scroll className="h-6 w-6" />
-            <div>
-              <h3 className="font-semibold">Policies Enacted</h3>
-              <p className="text-sm text-muted-foreground">0/6 Required</p>
-            </div>
+            <span className="ml-2">5</span>
+          </div>
+        </Card>
+        <Card className="w-24">
+          <div className="flex items-center justify-center p-2">
+            <Users className="h-6 w-6" />
+            <span className="ml-2">2/4</span>
           </div>
         </Card>
       </div>
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="mt-8 grid gap-8"
-      >
-        {gamePhase === "lobby" && (
-          <div className="text-center">
-            <h2 className="mb-4 text-2xl font-bold">Game Lobby</h2>
-            <Button size="lg" onClick={() => setGamePhase("playing")}>
-              Start Game
-            </Button>
-          </div>
-        )}
-
-        {gamePhase === "playing" && (
-          <div className="grid gap-4">
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Card key={i} className="p-4 text-center">
-                  <div className="font-semibold">Player {i + 1}</div>
-                  <div className="text-sm text-muted-foreground">Not voted</div>
-                </Card>
-              ))}
-            </div>
-            <div className="flex justify-center gap-4">
-              <Button variant="destructive">Vote No</Button>
-              <Button variant="default">Vote Yes</Button>
-            </div>
-          </div>
-        )}
-      </motion.div>
-      <ThemeSelector />
     </div>
   );
 }

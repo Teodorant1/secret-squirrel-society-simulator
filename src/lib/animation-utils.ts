@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import type { Transition } from "framer-motion"
+import type { Transition } from "framer-motion";
 
 export interface AnimationConfig {
-  initial: Record<string, any>
-  animate: Record<string, any>
-  exit: Record<string, any>
-  transition: Transition
+  initial: Record<string, never>;
+  animate: Record<string, never>;
+  exit: Record<string, never>;
+  transition: Transition;
 }
 
 export const pulseAnimation = {
@@ -16,16 +16,20 @@ export const pulseAnimation = {
     repeat: Number.POSITIVE_INFINITY,
     ease: "easeInOut",
   },
-}
+};
 
 export const glowAnimation = (color: string) => ({
-  boxShadow: [`0 0 10px ${color}33`, `0 0 20px ${color}66`, `0 0 10px ${color}33`],
+  boxShadow: [
+    `0 0 10px ${color}33`,
+    `0 0 20px ${color}66`,
+    `0 0 10px ${color}33`,
+  ],
   transition: {
     duration: 2,
     repeat: Number.POSITIVE_INFINITY,
     ease: "easeInOut",
   },
-})
+});
 
 export const floatAnimation = {
   y: [0, -10, 0],
@@ -34,5 +38,4 @@ export const floatAnimation = {
     repeat: Number.POSITIVE_INFINITY,
     ease: "easeInOut",
   },
-}
-
+};

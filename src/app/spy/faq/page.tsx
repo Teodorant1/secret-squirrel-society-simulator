@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import {
   Accordion,
   AccordionContent,
@@ -5,46 +8,57 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { ThemeSelector } from "@/components/theme-selector";
-
-const FAQS = [
-  {
-    question: "What is Secret Politics?",
-    answer:
-      "Secret Politics is a social deduction game inspired by Secret Hitler, where players must work together to uncover hidden roles and agendas while navigating political intrigue.",
-  },
-  {
-    question: "How many players are needed?",
-    answer:
-      "The game is designed for 5-10 players, with different role distributions based on the player count.",
-  },
-  {
-    question: "How do the theme presets work?",
-    answer:
-      "Each theme preset provides a unique visual experience with custom animations, colors, and styling. You can choose from Game of Thrones, James Bond, Wendigoon, Alexander Vucic, or Trump & Vance themes, or create your own custom theme.",
-  },
-  {
-    question: "Can I create my own custom theme?",
-    answer:
-      "Yes! You can customize faction names, colors, symbols, and spacing in the customize page to create your own unique theme.",
-  },
-  {
-    question: "How do I save my custom theme?",
-    answer:
-      "Your custom theme settings are automatically saved to your account when you're logged in. You can switch between your custom theme and presets at any time.",
-  },
-];
+import { CRTScanlines } from "@/components/effects/crt-scanlines";
+import { GlitchText } from "@/components/effects/glitch-text";
 
 export default function FAQPage() {
+  const [seed] = useState(Math.random() * 1000);
+
   return (
     <div className="container max-w-3xl py-12">
-      <h1 className="mb-8 text-4xl font-bold">Frequently Asked Questions</h1>
-      <Accordion type="single" collapsible className="w-full">
-        {FAQS.map((faq, index) => (
-          <AccordionItem key={index} value={`item-${index}`}>
-            <AccordionTrigger>{faq.question}</AccordionTrigger>
-            <AccordionContent>{faq.answer}</AccordionContent>
-          </AccordionItem>
-        ))}
+      <CRTScanlines seed={seed} />
+      <GlitchText
+        text="Frequently Asked Questions"
+        as="h1"
+        className="mb-8 text-4xl font-bold"
+        seed={seed}
+      />
+      <Accordion type="single">
+        <AccordionItem value="item-1">
+          <AccordionTrigger>
+            <GlitchText text="What is this website about?" seed={seed} />
+          </AccordionTrigger>
+          <AccordionContent>
+            <p className="text-lg leading-relaxed">
+              This website is a collection of resources and tools for learning
+              about and using generative AI. It is designed to be a helpful
+              resource for both beginners and experienced users.
+            </p>
+          </AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="item-2">
+          <AccordionTrigger>
+            <GlitchText text="Who created this website?" seed={seed} />
+          </AccordionTrigger>
+          <AccordionContent>
+            <p className="text-lg leading-relaxed">
+              This website was created by a passionate group of AI enthusiasts.
+              We are dedicated to making generative AI more accessible and
+              understandable.
+            </p>
+          </AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="item-3">
+          <AccordionTrigger>
+            <GlitchText text="How can I contribute?" seed={seed} />
+          </AccordionTrigger>
+          <AccordionContent>
+            <p className="text-lg leading-relaxed">
+              We welcome contributions! If you have any suggestions, feedback,
+              or would like to help improve the website, please reach out to us.
+            </p>
+          </AccordionContent>
+        </AccordionItem>
       </Accordion>
       <ThemeSelector />
     </div>

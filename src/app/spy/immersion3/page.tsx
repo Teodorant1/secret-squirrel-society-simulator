@@ -1,31 +1,41 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Eye, AlertTriangle, Brain, Lock, FileWarning, Radio, Network } from "lucide-react"
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  Eye,
+  AlertTriangle,
+  Brain,
+  Lock,
+  FileWarning,
+  Radio,
+  Network,
+} from "lucide-react";
 
 export default function Immersion3Page() {
-  const [surveillanceData, setSurveillanceData] = useState<number[]>([])
-  const [threatLevel, setThreatLevel] = useState(Math.random() * 100)
-  const [psychData, setPsychData] = useState<number[]>([])
-  const [detectionRisk, setDetectionRisk] = useState(Math.random() * 100)
+  const [surveillanceData, setSurveillanceData] = useState<number[]>([]);
+  const [threatLevel, setThreatLevel] = useState(Math.random() * 100);
+  const [psychData, setPsychData] = useState<number[]>([]);
+  const [detectionRisk, setDetectionRisk] = useState(Math.random() * 100);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setSurveillanceData(Array.from({ length: 12 }, () => Math.random() * 100))
-      setThreatLevel(Math.random() * 100)
-      setPsychData(Array.from({ length: 6 }, () => Math.random() * 100))
-      setDetectionRisk(Math.random() * 100)
-    }, 3000)
+      setSurveillanceData(
+        Array.from({ length: 12 }, () => Math.random() * 100),
+      );
+      setThreatLevel(Math.random() * 100);
+      setPsychData(Array.from({ length: 6 }, () => Math.random() * 100));
+      setDetectionRisk(Math.random() * 100);
+    }, 3000);
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden bg-background">
       {/* Ominous Background Pattern */}
       <motion.div
         className="fixed inset-0 opacity-30"
@@ -35,31 +45,43 @@ export default function Immersion3Page() {
             "radial-gradient(circle at 70% 70%, rgba(var(--primary), 0.1) 0%, transparent 60%)",
           ],
         }}
-        transition={{ duration: 10, repeat: Number.POSITIVE_INFINITY, repeatType: "reverse" }}
+        transition={{
+          duration: 10,
+          repeat: Number.POSITIVE_INFINITY,
+          repeatType: "reverse",
+        }}
       />
 
       {/* Enhanced Particle Field */}
       <OminousParticleField />
 
-      <div className="container mx-auto py-12 relative z-10 space-y-8">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
-          <h1 className="text-4xl font-bold tracking-tight mb-4">Deep Surveillance Systems</h1>
+      <div className="container relative z-10 mx-auto space-y-8 py-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 text-center"
+        >
+          <h1 className="mb-4 text-4xl font-bold tracking-tight">
+            Deep Surveillance Systems
+          </h1>
           <div className="flex items-center justify-center gap-2">
             <motion.div
               animate={{ opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
-              className="w-2 h-2 rounded-full bg-primary"
+              className="h-2 w-2 rounded-full bg-primary"
             />
             <p className="text-lg text-muted-foreground">Active Monitoring</p>
           </div>
         </motion.div>
 
         {/* Threat Assessment Matrix */}
-        <Card className="p-6 relative overflow-hidden">
-          <div className="flex items-center justify-between mb-6">
+        <Card className="relative overflow-hidden p-6">
+          <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
-              <h3 className="text-xl font-semibold">Threat Assessment Matrix</h3>
+              <h3 className="text-xl font-semibold">
+                Threat Assessment Matrix
+              </h3>
             </div>
             <motion.div
               animate={{
@@ -77,7 +99,7 @@ export default function Immersion3Page() {
             {Array.from({ length: 9 }).map((_, i) => (
               <motion.div
                 key={i}
-                className="aspect-square rounded-lg bg-muted/50 relative overflow-hidden"
+                className="relative aspect-square overflow-hidden rounded-lg bg-muted/50"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: i * 0.1 }}
@@ -95,7 +117,7 @@ export default function Immersion3Page() {
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <motion.div
-                    className="w-1 h-1 bg-primary rounded-full"
+                    className="h-1 w-1 rounded-full bg-primary"
                     animate={{
                       scale: [1, 2, 1],
                       opacity: [0.3, 1, 0.3],
@@ -113,8 +135,8 @@ export default function Immersion3Page() {
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* Psychological Profile Analyzer */}
-          <Card className="p-6 relative overflow-hidden">
-            <div className="flex items-center gap-2 mb-6">
+          <Card className="relative overflow-hidden p-6">
+            <div className="mb-6 flex items-center gap-2">
               <Brain className="h-5 w-5" />
               <h3 className="text-xl font-semibold">Psychological Analysis</h3>
             </div>
@@ -128,10 +150,12 @@ export default function Immersion3Page() {
                   transition={{ delay: index * 0.1 }}
                 >
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Pattern {index + 1}</span>
+                    <span className="text-muted-foreground">
+                      Pattern {index + 1}
+                    </span>
                     <span>{Math.floor(value)}%</span>
                   </div>
-                  <div className="h-1 bg-muted rounded-full overflow-hidden">
+                  <div className="h-1 overflow-hidden rounded-full bg-muted">
                     <motion.div
                       className="h-full bg-primary"
                       animate={{
@@ -150,13 +174,13 @@ export default function Immersion3Page() {
           </Card>
 
           {/* Infiltration Progress */}
-          <Card className="p-6 relative overflow-hidden">
-            <div className="flex items-center gap-2 mb-6">
+          <Card className="relative overflow-hidden p-6">
+            <div className="mb-6 flex items-center gap-2">
               <Lock className="h-5 w-5" />
               <h3 className="text-xl font-semibold">System Infiltration</h3>
             </div>
             <div className="space-y-6">
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <Badge variant="outline">Detection Risk</Badge>
                 <motion.span
                   className="text-sm"
@@ -181,7 +205,7 @@ export default function Immersion3Page() {
                 {Array.from({ length: 4 }).map((_, i) => (
                   <motion.div
                     key={i}
-                    className="p-3 rounded-lg bg-muted/50 flex items-center justify-between"
+                    className="flex items-center justify-between rounded-lg bg-muted/50 p-3"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: i * 0.2 }}
@@ -205,16 +229,16 @@ export default function Immersion3Page() {
         </div>
 
         {/* Surveillance Grid */}
-        <Card className="p-6 relative overflow-hidden">
-          <div className="flex items-center gap-2 mb-6">
+        <Card className="relative overflow-hidden p-6">
+          <div className="mb-6 flex items-center gap-2">
             <Eye className="h-5 w-5" />
             <h3 className="text-xl font-semibold">Surveillance Grid</h3>
           </div>
-          <div className="grid grid-cols-4 gap-4 relative">
+          <div className="relative grid grid-cols-4 gap-4">
             {surveillanceData.map((value, index) => (
               <motion.div
                 key={index}
-                className="aspect-square rounded-lg bg-muted/50 relative overflow-hidden"
+                className="relative aspect-square overflow-hidden rounded-lg bg-muted/50"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: index * 0.1 }}
@@ -244,7 +268,7 @@ export default function Immersion3Page() {
                   }}
                 />
                 <motion.div
-                  className="absolute top-2 right-2 w-1 h-1 rounded-full bg-primary"
+                  className="absolute right-2 top-2 h-1 w-1 rounded-full bg-primary"
                   animate={{
                     opacity: [0.3, 1, 0.3],
                     scale: [1, 1.5, 1],
@@ -261,8 +285,8 @@ export default function Immersion3Page() {
 
         {/* Network Intrusion Monitor */}
         <div className="grid gap-6 md:grid-cols-2">
-          <Card className="p-6 relative overflow-hidden">
-            <div className="flex items-center gap-2 mb-6">
+          <Card className="relative overflow-hidden p-6">
+            <div className="mb-6 flex items-center gap-2">
               <Network className="h-5 w-5" />
               <h3 className="text-xl font-semibold">Network Intrusion</h3>
             </div>
@@ -272,36 +296,36 @@ export default function Immersion3Page() {
           </Card>
 
           {/* Signal Interference */}
-          <Card className="p-6 relative overflow-hidden">
-            <div className="flex items-center gap-2 mb-6">
+          <Card className="relative overflow-hidden p-6">
+            <div className="mb-6 flex items-center gap-2">
               <Radio className="h-5 w-5" />
               <h3 className="text-xl font-semibold">Signal Interference</h3>
             </div>
-            <div className="h-[200px] flex items-center justify-center">
+            <div className="flex h-[200px] items-center justify-center">
               <SignalWaves />
             </div>
           </Card>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function OminousParticleField() {
   return (
-    <div className="fixed inset-0 pointer-events-none">
+    <div className="pointer-events-none fixed inset-0">
       {Array.from({ length: 50 }).map((_, i) => (
         <motion.div
           key={i}
-          className="absolute w-0.5 h-0.5 bg-primary/10 rounded-full"
+          className="absolute h-0.5 w-0.5 rounded-full bg-primary/10"
           initial={{
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
+            x: Math.random(),
+            y: Math.random(),
             scale: Math.random() * 0.5 + 0.5,
           }}
           animate={{
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
+            x: Math.random(),
+            y: Math.random(),
             scale: [1, Math.random() * 2 + 1, 1],
           }}
           transition={{
@@ -316,14 +340,14 @@ function OminousParticleField() {
         />
       ))}
     </div>
-  )
+  );
 }
 
 function NetworkNodes() {
   const nodes = Array.from({ length: 6 }, (_, i) => ({
     x: Math.random() * 100,
     y: Math.random() * 100,
-  }))
+  }));
 
   return (
     <>
@@ -353,7 +377,7 @@ function NetworkNodes() {
       {nodes.map((node, i) => (
         <motion.div
           key={i}
-          className="absolute w-2 h-2 bg-primary rounded-full"
+          className="absolute h-2 w-2 rounded-full bg-primary"
           style={{
             left: `${node.x}%`,
             top: `${node.y}%`,
@@ -370,7 +394,7 @@ function NetworkNodes() {
         />
       ))}
     </>
-  )
+  );
 }
 
 function SignalWaves() {
@@ -379,7 +403,7 @@ function SignalWaves() {
       {Array.from({ length: 20 }).map((_, i) => (
         <motion.div
           key={i}
-          className="w-1 bg-primary rounded-full"
+          className="w-1 rounded-full bg-primary"
           animate={{
             height: [10, Math.random() * 80 + 20, 10],
             opacity: [0.3, 0.7, 0.3],
@@ -392,6 +416,5 @@ function SignalWaves() {
         />
       ))}
     </div>
-  )
+  );
 }
-

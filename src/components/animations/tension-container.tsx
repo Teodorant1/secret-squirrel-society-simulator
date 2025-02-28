@@ -1,20 +1,28 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { motion } from "framer-motion"
-import { cn } from "@/lib/utils"
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface TensionContainerProps {
-  children: React.ReactNode
-  className?: string
-  urgent?: boolean
+  children: React.ReactNode;
+  className?: string;
+  urgent?: boolean;
 }
 
-export function TensionContainer({ children, className, urgent = false }: TensionContainerProps) {
+export function TensionContainer({
+  children,
+  className,
+  urgent = false,
+}: TensionContainerProps) {
   return (
     <motion.div
-      className={cn("relative overflow-hidden", urgent && "border-red-500/50", className)}
+      className={cn(
+        "relative overflow-hidden",
+        urgent && "border-red-500/50",
+        className,
+      )}
       whileHover={{
         scale: 1.02,
         transition: { duration: 0.2 },
@@ -25,7 +33,7 @@ export function TensionContainer({ children, className, urgent = false }: Tensio
       }}
     >
       <motion.div
-        className="absolute inset-0 pointer-events-none"
+        className="pointer-events-none absolute inset-0"
         animate={{
           background: urgent
             ? [
@@ -45,6 +53,5 @@ export function TensionContainer({ children, className, urgent = false }: Tensio
       />
       {children}
     </motion.div>
-  )
+  );
 }
-

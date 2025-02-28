@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const themeAnimations = {
   got: {
@@ -74,7 +74,11 @@ const themeAnimations = {
   eve: {
     hover: {
       scale: 1.05,
-      boxShadow: ["0 0 10px rgba(0,255,255,0.5)", "0 0 20px rgba(0,255,255,0.3)", "0 0 10px rgba(0,255,255,0.5)"],
+      boxShadow: [
+        "0 0 10px rgba(0,255,255,0.5)",
+        "0 0 20px rgba(0,255,255,0.3)",
+        "0 0 10px rgba(0,255,255,0.5)",
+      ],
       transition: {
         boxShadow: {
           repeat: Number.POSITIVE_INFINITY,
@@ -84,23 +88,37 @@ const themeAnimations = {
     },
     tap: { scale: 0.95 },
   },
-}
+};
 
-export interface AnimatedButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  theme?: keyof typeof themeAnimations
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
+export interface AnimatedButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  theme?: keyof typeof themeAnimations;
+  variant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
 }
 
 const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButtonProps>(
   ({ className, theme = "default", variant, children, ...props }, ref) => {
-    const animations = themeAnimations[theme as keyof typeof themeAnimations] || {
+    const animations = themeAnimations[
+      theme as keyof typeof themeAnimations
+    ] || {
       hover: { scale: 1.02 },
       tap: { scale: 0.98 },
-    }
+    };
 
     return (
       <motion.div whileHover={animations.hover} whileTap={animations.tap}>
-        <Button ref={ref} variant={variant} className={cn("relative overflow-hidden", className)} {...props}>
+        <Button
+          ref={ref}
+          variant={variant}
+          className={cn("relative overflow-hidden", className)}
+          {...props}
+        >
           {children}
           <motion.div
             className="absolute inset-0 bg-white/10"
@@ -110,10 +128,9 @@ const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButtonProps>(
           />
         </Button>
       </motion.div>
-    )
+    );
   },
-)
-AnimatedButton.displayName = "AnimatedButton"
+);
+AnimatedButton.displayName = "AnimatedButton";
 
-export { AnimatedButton }
-
+export { AnimatedButton };

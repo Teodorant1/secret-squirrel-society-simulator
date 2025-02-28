@@ -1,17 +1,13 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { Header } from "@/components/header"
-import { motion, AnimatePresence } from "framer-motion"
-import { usePathname } from "next/navigation"
+import { Header } from "@/components/header";
+import { motion, AnimatePresence } from "framer-motion";
+import { usePathname } from "next/navigation";
 
-export default function SpyLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  const pathname = usePathname()
+export default function SpyLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
 
   return (
     <div className="min-h-screen bg-background">
@@ -28,6 +24,5 @@ export default function SpyLayout({
         </motion.main>
       </AnimatePresence>
     </div>
-  )
+  );
 }
-

@@ -1,36 +1,56 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Globe2, Shield, Target, AlertTriangle, Clock, BarChart3, Network } from "lucide-react"
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  Globe2,
+  Shield,
+  Target,
+  AlertTriangle,
+  Clock,
+  BarChart3,
+  Network,
+} from "lucide-react";
 
 export default function DashboardPage() {
-  const [operationStatus, setOperationStatus] = useState(78)
-  const [activeAgents, setActiveAgents] = useState(42)
-  const [threatLevel, setThreatLevel] = useState(65)
-  const [resourceAllocation, setResourceAllocation] = useState<number[]>([65, 48, 72, 85])
-  const [missionProgress, setMissionProgress] = useState<number[]>([])
+  const [operationStatus, setOperationStatus] = useState(78);
+  const [activeAgents, setActiveAgents] = useState(42);
+  const [threatLevel, setThreatLevel] = useState(65);
+  const [resourceAllocation, setResourceAllocation] = useState<number[]>([
+    65, 48, 72, 85,
+  ]);
+  const [missionProgress, setMissionProgress] = useState<number[]>([]);
 
   useEffect(() => {
     // Simulate real-time updates
     const interval = setInterval(() => {
-      setOperationStatus((prev) => Math.min(100, Math.max(0, prev + (Math.random() - 0.5) * 5)))
-      setActiveAgents((prev) => Math.floor(Math.max(30, Math.min(50, prev + (Math.random() - 0.5) * 3))))
-      setThreatLevel((prev) => Math.min(100, Math.max(0, prev + (Math.random() - 0.5) * 8)))
+      setOperationStatus((prev) =>
+        Math.min(100, Math.max(0, prev + (Math.random() - 0.5) * 5)),
+      );
+      setActiveAgents((prev) =>
+        Math.floor(
+          Math.max(30, Math.min(50, prev + (Math.random() - 0.5) * 3)),
+        ),
+      );
+      setThreatLevel((prev) =>
+        Math.min(100, Math.max(0, prev + (Math.random() - 0.5) * 8)),
+      );
       setResourceAllocation((prev) =>
-        prev.map((value) => Math.min(100, Math.max(0, value + (Math.random() - 0.5) * 5))),
-      )
-      setMissionProgress(Array.from({ length: 5 }, () => Math.random() * 100))
-    }, 3000)
+        prev.map((value) =>
+          Math.min(100, Math.max(0, value + (Math.random() - 0.5) * 5)),
+        ),
+      );
+      setMissionProgress(Array.from({ length: 5 }, () => Math.random() * 100));
+    }, 3000);
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden bg-background">
       {/* Strategic Background Pattern */}
       <motion.div
         className="fixed inset-0 opacity-20"
@@ -40,21 +60,33 @@ export default function DashboardPage() {
             "radial-gradient(circle at 80% 80%, rgba(var(--primary), 0.15) 0%, transparent 70%)",
           ],
         }}
-        transition={{ duration: 15, repeat: Number.POSITIVE_INFINITY, repeatType: "reverse" }}
+        transition={{
+          duration: 15,
+          repeat: Number.POSITIVE_INFINITY,
+          repeatType: "reverse",
+        }}
       />
 
-      <div className="container mx-auto py-8 relative z-10 space-y-6">
+      <div className="container relative z-10 mx-auto space-y-6 py-8">
         {/* Header Section */}
-        <div className="flex flex-col items-center justify-center text-center mb-8">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-            <h1 className="text-4xl font-bold tracking-tight">Strategic Command Center</h1>
+        <div className="mb-8 flex flex-col items-center justify-center text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-4"
+          >
+            <h1 className="text-4xl font-bold tracking-tight">
+              Strategic Command Center
+            </h1>
             <div className="flex items-center justify-center gap-2">
               <motion.div
                 animate={{ opacity: [0.5, 1, 0.5] }}
                 transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
-                className="w-2 h-2 rounded-full bg-primary"
+                className="h-2 w-2 rounded-full bg-primary"
               />
-              <p className="text-lg text-muted-foreground">Global Operations Active</p>
+              <p className="text-lg text-muted-foreground">
+                Global Operations Active
+              </p>
             </div>
           </motion.div>
         </div>
@@ -62,8 +94,8 @@ export default function DashboardPage() {
         {/* Main Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* Operation Status */}
-          <Card className="p-6 relative overflow-hidden">
-            <div className="flex items-center justify-between mb-4">
+          <Card className="relative overflow-hidden p-6">
+            <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Shield className="h-5 w-5" />
                 <h3 className="text-xl font-semibold">Operation Status</h3>
@@ -74,7 +106,9 @@ export default function DashboardPage() {
                 }}
                 transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
               >
-                <Badge variant="outline">{Math.round(operationStatus)}% Optimal</Badge>
+                <Badge variant="outline">
+                  {Math.round(operationStatus)}% Optimal
+                </Badge>
               </motion.div>
             </div>
             <Progress value={operationStatus} className="mb-4">
@@ -88,7 +122,9 @@ export default function DashboardPage() {
             </Progress>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Active Protocols</p>
+                <p className="text-sm text-muted-foreground">
+                  Active Protocols
+                </p>
                 <p className="text-lg font-semibold">17/20</p>
               </div>
               <div className="space-y-1">
@@ -99,8 +135,8 @@ export default function DashboardPage() {
           </Card>
 
           {/* Global Deployment */}
-          <Card className="p-6 relative overflow-hidden">
-            <div className="flex items-center justify-between mb-4">
+          <Card className="relative overflow-hidden p-6">
+            <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Globe2 className="h-5 w-5" />
                 <h3 className="text-xl font-semibold">Global Deployment</h3>
@@ -113,8 +149,8 @@ export default function DashboardPage() {
           </Card>
 
           {/* Threat Assessment */}
-          <Card className="p-6 relative overflow-hidden">
-            <div className="flex items-center justify-between mb-4">
+          <Card className="relative overflow-hidden p-6">
+            <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5" />
                 <h3 className="text-xl font-semibold">Threat Assessment</h3>
@@ -125,7 +161,10 @@ export default function DashboardPage() {
                 }}
                 transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
               >
-                <Badge variant="outline" className={threatLevel > 75 ? "bg-destructive/10" : ""}>
+                <Badge
+                  variant="outline"
+                  className={threatLevel > 75 ? "bg-destructive/10" : ""}
+                >
                   Level {Math.round(threatLevel)}
                 </Badge>
               </motion.div>
@@ -137,30 +176,40 @@ export default function DashboardPage() {
         </div>
 
         {/* Resource Allocation */}
-        <Card className="p-6 relative overflow-hidden">
-          <div className="flex items-center justify-between mb-6">
+        <Card className="relative overflow-hidden p-6">
+          <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5" />
               <h3 className="text-xl font-semibold">Resource Allocation</h3>
             </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
             {resourceAllocation.map((value, index) => (
               <div key={index} className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">
-                    {["Intelligence", "Surveillance", "Operations", "Logistics"][index]}
+                    {
+                      [
+                        "Intelligence",
+                        "Surveillance",
+                        "Operations",
+                        "Logistics",
+                      ][index]
+                    }
                   </span>
                   <span>{Math.round(value)}%</span>
                 </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div className="h-2 overflow-hidden rounded-full bg-muted">
                   <motion.div
                     className="h-full bg-primary"
                     animate={{
                       width: `${value}%`,
                       opacity: [0.7, 1, 0.7],
                     }}
-                    transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
+                    transition={{
+                      duration: 2,
+                      repeat: Number.POSITIVE_INFINITY,
+                    }}
                   />
                 </div>
               </div>
@@ -170,8 +219,8 @@ export default function DashboardPage() {
 
         {/* Mission Timeline */}
         <div className="grid gap-6 md:grid-cols-2">
-          <Card className="p-6 relative overflow-hidden">
-            <div className="flex items-center justify-between mb-6">
+          <Card className="relative overflow-hidden p-6">
+            <div className="mb-6 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5" />
                 <h3 className="text-xl font-semibold">Mission Timeline</h3>
@@ -180,12 +229,16 @@ export default function DashboardPage() {
             <div className="space-y-4">
               {missionProgress.map((progress, index) => (
                 <div key={index} className="space-y-2">
-                  <div className="flex justify-between items-center">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Target className="h-4 w-4" />
-                      <span className="text-sm">Operation {String.fromCharCode(65 + index)}</span>
+                      <span className="text-sm">
+                        Operation {String.fromCharCode(65 + index)}
+                      </span>
                     </div>
-                    <Badge variant="outline">{progress < 100 ? "In Progress" : "Complete"}</Badge>
+                    <Badge variant="outline">
+                      {progress < 100 ? "In Progress" : "Complete"}
+                    </Badge>
                   </div>
                   <Progress value={progress}>
                     <motion.div
@@ -193,7 +246,10 @@ export default function DashboardPage() {
                       animate={{
                         opacity: [0.7, 1, 0.7],
                       }}
-                      transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
+                      transition={{
+                        duration: 2,
+                        repeat: Number.POSITIVE_INFINITY,
+                      }}
                     />
                   </Progress>
                 </div>
@@ -202,8 +258,8 @@ export default function DashboardPage() {
           </Card>
 
           {/* Intelligence Network */}
-          <Card className="p-6 relative overflow-hidden">
-            <div className="flex items-center justify-between mb-6">
+          <Card className="relative overflow-hidden p-6">
+            <div className="mb-6 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Network className="h-5 w-5" />
                 <h3 className="text-xl font-semibold">Intelligence Network</h3>
@@ -216,7 +272,7 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function GlobalMap() {
@@ -226,7 +282,7 @@ function GlobalMap() {
       {Array.from({ length: 12 }).map((_, i) => (
         <motion.div
           key={i}
-          className="absolute w-2 h-2 bg-primary rounded-full"
+          className="absolute h-2 w-2 rounded-full bg-primary"
           style={{
             left: `${Math.random() * 100}%`,
             top: `${Math.random() * 100}%`,
@@ -243,7 +299,7 @@ function GlobalMap() {
         />
       ))}
       {/* Connection lines */}
-      <svg className="absolute inset-0 w-full h-full">
+      <svg className="absolute inset-0 h-full w-full">
         <motion.path
           d="M0,50 Q50,0 100,50"
           stroke="currentColor"
@@ -257,7 +313,7 @@ function GlobalMap() {
         />
       </svg>
     </div>
-  )
+  );
 }
 
 function ThreatMatrix() {
@@ -266,7 +322,7 @@ function ThreatMatrix() {
       {Array.from({ length: 9 }).map((_, i) => (
         <motion.div
           key={i}
-          className="aspect-square rounded bg-muted/50 relative overflow-hidden"
+          className="relative aspect-square overflow-hidden rounded bg-muted/50"
           animate={{
             opacity: [0.5, 1, 0.5],
           }}
@@ -289,14 +345,14 @@ function ThreatMatrix() {
         </motion.div>
       ))}
     </div>
-  )
+  );
 }
 
 function IntelligenceNetwork() {
-  const nodes = Array.from({ length: 8 }, (_, i) => ({
+  const nodes = Array.from({ length: 8 }, (_, __) => ({
     x: Math.random() * 100,
     y: Math.random() * 100,
-  }))
+  }));
 
   return (
     <>
@@ -326,7 +382,7 @@ function IntelligenceNetwork() {
       {nodes.map((node, i) => (
         <motion.div
           key={i}
-          className="absolute w-2 h-2 bg-primary rounded-full"
+          className="absolute h-2 w-2 rounded-full bg-primary"
           style={{
             left: `${node.x}%`,
             top: `${node.y}%`,
@@ -343,6 +399,5 @@ function IntelligenceNetwork() {
         />
       ))}
     </>
-  )
+  );
 }
-
