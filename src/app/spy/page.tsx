@@ -10,7 +10,7 @@ import { Shield, Cpu, Network, Lock } from "lucide-react";
 
 export default function HomePage() {
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden text-center">
+    <div className="relative flex min-h-screen w-[100vh] min-w-full flex-col items-center justify-center overflow-hidden text-center">
       {/* CRT Scanlines Effect */}
       <CRTScanlines />
       {/* Digital noise background */}
@@ -19,7 +19,7 @@ export default function HomePage() {
           <filter id="noise">
             <feTurbulence
               type="fractalNoise"
-              baseFrequency="0.65"
+              baseFrequency="2.65"
               numOctaves="3"
               stitchTiles="stitch"
             />
@@ -33,7 +33,7 @@ export default function HomePage() {
       </div>
       {/* Grid lines */}
       <div
-        className="absolute inset-0 opacity-10"
+        className="absolute left-0 top-0 h-screen w-screen opacity-10"
         style={{
           backgroundImage:
             "linear-gradient(to right, #00a2ff 1px, transparent 1px), linear-gradient(to bottom, #00a2ff 1px, transparent 1px)",

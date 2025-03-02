@@ -18,7 +18,7 @@ export function CRTScanlines({
   color = "rgba(0, 162, 255, 0.15)",
   seed,
 }: CRTScanlinesProps) {
-  const [randomSeed, setRandomSeed] = useState(seed ?? Math.random() * 1000);
+  const [randomSeed, setRandomSeed] = useState(seed ?? Math.random() * 4000);
   const [auroraPhase, setAuroraPhase] = useState(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -65,13 +65,13 @@ export function CRTScanlines({
   useEffect(() => {
     if (seed === undefined) {
       const seedInterval = setInterval(() => {
-        setRandomSeed(Math.random() * 1000);
+        setRandomSeed(Math.random() * 2000);
       }, 10000);
 
       // Cycle through aurora colors
       const auroraInterval = setInterval(() => {
         setAuroraPhase((prev) => (prev + 1) % etherealColors.length);
-      }, 3000);
+      }, 10000);
 
       return () => {
         clearInterval(seedInterval);
@@ -106,7 +106,7 @@ export function CRTScanlines({
           ],
         }}
         transition={{
-          duration: 3,
+          duration: flickerDuration,
           repeat: Number.POSITIVE_INFINITY,
           repeatType: "reverse",
         }}
@@ -216,7 +216,7 @@ export function CRTScanlines({
             delay: scanlineDelay,
           },
           opacity: {
-            duration: 2,
+            duration: flickerDuration,
             repeat: Number.POSITIVE_INFINITY,
             repeatType: "reverse",
           },

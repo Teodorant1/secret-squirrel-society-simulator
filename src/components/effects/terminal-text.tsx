@@ -151,17 +151,10 @@ export function TerminalText({
       {(isTyping || blinkCursor) && (
         <motion.span
           animate={{
-            opacity: [1, 0, 1],
-            height: mysticalEffect ? ["1em", "1.2em", "1em"] : "1em",
+            opacity: [1, 0, 1], // Blinking effect remains
+            height: "1em", // Fixed height
           }}
           transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY }}
-          className="ml-1 inline-block w-2"
-          style={{
-            background: `linear-gradient(to bottom, ${etherealColors[glowColor]}, ${
-              etherealColors[(glowColor + 2) % etherealColors.length]
-            })`,
-            boxShadow: `0 0 10px ${etherealColors[glowColor]}`,
-          }}
         />
       )}
 

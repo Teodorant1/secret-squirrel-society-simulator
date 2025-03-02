@@ -3,10 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { ModeToggle } from "@/components/mode-toggle";
 import { Shield, Activity } from "lucide-react";
 import { GlitchText } from "@/components/effects/glitch-text";
+import { NavMenu } from "@/components/nav-menu";
 
 export function Header() {
   const [seed] = useState(Math.random() * 1000);
@@ -35,7 +34,7 @@ export function Header() {
 
         <div className="flex items-center gap-4">
           <motion.div
-            className="flex items-center gap-2 text-sm text-muted-foreground"
+            className="hidden items-center gap-2 text-sm text-muted-foreground sm:flex"
             animate={{
               opacity: [0.5, 1, 0.5],
             }}
@@ -45,12 +44,7 @@ export function Header() {
             <GlitchText text="System Active" seed={seed + 1} />
           </motion.div>
 
-          <Link href="/spy/customize">
-            <Button variant="outline" size="sm">
-              <GlitchText text="Customize" seed={seed + 2} />
-            </Button>
-          </Link>
-          <ModeToggle />
+          <NavMenu />
         </div>
       </div>
     </motion.header>
