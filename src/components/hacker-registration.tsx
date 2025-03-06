@@ -86,7 +86,6 @@ export function HackerRegistration({ className }: { className?: string }) {
             as="h2"
             className="mb-2 font-mono text-2xl font-bold"
             glitchFactor={1.5}
-            seed={seed}
           />
           <TerminalText
             text="Enter your credentials to join the network"

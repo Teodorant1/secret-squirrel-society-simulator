@@ -136,9 +136,6 @@ export function HackerError({
               as="h2"
               className="mb-2 font-mono text-xl font-bold"
               glitchFactor={2}
-              color={currentStyle.glitchColor}
-              highlightColor="#ffffff"
-              seed={seed}
             />
 
             <p className="mb-4 font-mono text-sm text-gray-300">{message}</p>

@@ -120,7 +120,6 @@ export default function AIPage() {
             as="h1"
             className="mb-4 font-mono text-4xl font-bold"
             intensity="extreme"
-            seed={seed}
           />
           <div className="flex items-center justify-center gap-2">
             <Brain className="h-5 w-5 text-blue-400" />
@@ -185,7 +184,6 @@ export default function AIPage() {
                     text={stages[stage]?.title ?? "Loading Title..."}
                     className="font-mono text-xl font-bold"
                     intensity="high"
-                    seed={seed + stage}
                   />
 
                   <TerminalText
@@ -222,7 +220,6 @@ export default function AIPage() {
               text="SYSTEM_STATUS//"
               className="font-mono"
               intensity="high"
-              seed={seed + 100}
             />
           </div>
           <div className="h-32 overflow-y-auto rounded border border-blue-500/20 bg-black/50 p-4 font-mono text-sm text-blue-300/80">
@@ -269,7 +266,6 @@ export default function AIPage() {
                     text="SECURITY_BREACH//"
                     className="font-mono text-2xl font-bold text-red-500"
                     intensity="extreme"
-                    seed={seed + 200}
                   />
 
                   <TerminalText

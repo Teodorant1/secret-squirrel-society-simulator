@@ -44,7 +44,7 @@ export function NavMenu() {
             href={link.href}
             className="text-sm transition-colors hover:text-primary"
           >
-            <GlitchText text={link.label} seed={seed + index} />
+            <GlitchText text={link.label} />
           </Link>
         ))}
 
@@ -55,13 +55,13 @@ export function NavMenu() {
               href="/spy/profile"
               className="text-sm transition-colors hover:text-primary"
             >
-              <GlitchText text="Profile" seed={seed + 100} />
+              <GlitchText text="Profile" />
             </Link>
             <Link
               href="/api/auth/signout"
               className="text-sm transition-colors hover:text-red-500"
             >
-              <GlitchText text="Logout" seed={seed + 101} />
+              <GlitchText text="Logout" />
             </Link>
           </>
         ) : (
@@ -69,7 +69,7 @@ export function NavMenu() {
             href="/api/auth/signin"
             className="text-sm transition-colors hover:text-green-500"
           >
-            <GlitchText text="Login" seed={seed + 102} />
+            <GlitchText text="Login" />
           </Link>
         )}
       </nav>
@@ -97,7 +97,7 @@ export function NavMenu() {
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <GlitchText text={link.label} seed={seed + index} />
+                    <GlitchText text={link.label} />
                   </motion.div>
                 </Link>
               ))}
@@ -110,14 +110,14 @@ export function NavMenu() {
                     onClick={() => setIsOpen(false)}
                     className="px-4 py-2 text-sm transition-colors hover:bg-accent"
                   >
-                    <GlitchText text="Profile" seed={seed + 100} />
+                    <GlitchText text="Profile" />
                   </Link>
                   <Link
                     href="/api/auth/signout"
                     onClick={() => setIsOpen(false)}
                     className="px-4 py-2 text-sm transition-colors hover:text-red-500"
                   >
-                    <GlitchText text="Logout" seed={seed + 101} />
+                    <GlitchText text="Logout" />
                   </Link>
                 </>
               ) : (
@@ -126,7 +126,7 @@ export function NavMenu() {
                   onClick={() => setIsOpen(false)}
                   className="px-4 py-2 text-sm transition-colors hover:text-green-500"
                 >
-                  <GlitchText text="Login" seed={seed + 102} />
+                  <GlitchText text="Login" />
                 </Link>
               )}
             </nav>

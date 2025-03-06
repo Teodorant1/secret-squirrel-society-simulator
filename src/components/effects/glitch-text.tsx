@@ -2,8 +2,7 @@
 "use client";
 
 import type React from "react";
-
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -11,10 +10,7 @@ interface GlitchTextProps {
   text: string;
   className?: string;
   glitchFactor?: number;
-  color?: string;
-  highlightColor?: string;
   as?: React.ElementType;
-  seed?: number;
   intensity?: "normal" | "high" | "extreme";
 }
 
@@ -22,22 +18,19 @@ export function GlitchText({
   text,
   className,
   glitchFactor = 1,
-  color = "#00a2ff",
-  highlightColor = "#ff00ff",
   as: Component = "span",
-  seed,
   intensity = "normal",
 }: GlitchTextProps) {
   const [isGlitching, setIsGlitching] = useState(false);
-  const [randomSeed, setRandomSeed] = useState(seed ?? Math.random() * 1000);
-  const [glitchText, setGlitchText] = useState(text);
+  const [glitchTextIndex, setGlitchTextIndex] = useState(0);
   const [etherealPhase, setEtherealPhase] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const frameRef = useRef<number | null>(null);
+  const lastGlitchTimeRef = useRef(0);
 
   // Mystical symbols for text transformation
   const mysticalSymbols = "⚡☽★☀⚔️✧⚝✺❈❋⚜";
 
-  // Ethereal color transitions
+  // Ethereal neon color cycle
   const etherealColors = [
     "#00a2ff", // cyan
     "#ff00ff", // magenta
@@ -49,99 +42,60 @@ export function GlitchText({
     "#fffb96", // yellow
   ];
 
-  // Intensity settings with ethereal modifications
+  // Intensity settings
   const intensitySettings = {
-    normal: {
-      glitchInterval: 2000,
-      glitchDuration: 150,
-      glitchProbability: 0.2,
-      maxOffset: 5,
-      textChangeProbability: 0.3,
-      etherealProbability: 0.2,
-    },
-    high: {
-      glitchInterval: 1500,
-      glitchDuration: 300,
-      glitchProbability: 0.4,
-      maxOffset: 10,
-      textChangeProbability: 0.5,
-      etherealProbability: 0.4,
-    },
-    extreme: {
-      glitchInterval: 1000,
-      glitchDuration: 500,
-      glitchProbability: 0.6,
-      maxOffset: 15,
-      textChangeProbability: 0.7,
-      etherealProbability: 0.6,
-    },
+    normal: { interval: 2000, duration: 150, probability: 0.2, maxOffset: 5 },
+    high: { interval: 1500, duration: 300, probability: 0.4, maxOffset: 10 },
+    extreme: { interval: 1000, duration: 500, probability: 0.6, maxOffset: 15 },
   };
-
   const settings = intensitySettings[intensity];
 
-  // Ethereal color cycle effect
+  // Precompute glitch variations to avoid redundant recalculations
+  const glitchedVariants = useMemo(() => {
+    return Array.from({ length: 5 }, () =>
+      text
+        .split("")
+        .map((char) =>
+          Math.random() < 0.3
+            ? mysticalSymbols[
+                Math.floor(Math.random() * mysticalSymbols.length)
+              ]
+            : char,
+        )
+        .join(""),
+    );
+  }, [text]);
+
+  // Animation loop using requestAnimationFrame
+  useEffect(() => {
+    const glitchLoop = (time: number) => {
+      if (time - lastGlitchTimeRef.current > settings.interval / glitchFactor) {
+        if (Math.random() < settings.probability * glitchFactor) {
+          setIsGlitching(true);
+          setGlitchTextIndex((prev) => (prev + 1) % glitchedVariants.length);
+
+          setTimeout(() => {
+            setIsGlitching(false);
+          }, settings.duration);
+        }
+        lastGlitchTimeRef.current = time;
+      }
+      frameRef.current = requestAnimationFrame(glitchLoop);
+    };
+
+    frameRef.current = requestAnimationFrame(glitchLoop);
+    return () => {
+      if (frameRef.current) cancelAnimationFrame(frameRef.current);
+    };
+  }, [glitchFactor, settings, glitchedVariants]);
+
+  // Ethereal color cycling
   useEffect(() => {
     const interval = setInterval(() => {
       setEtherealPhase((prev) => (prev + 1) % etherealColors.length);
     }, 3000);
     return () => clearInterval(interval);
   }, []);
-
-  // Main glitch effect with ethereal modifications
-  useEffect(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-
-    const glitchInterval =
-      settings.glitchInterval / glitchFactor + (randomSeed % 1000);
-
-    intervalRef.current = setInterval(() => {
-      if (Math.random() < settings.glitchProbability * glitchFactor) {
-        setIsGlitching(true);
-
-        // Generate ethereal glitched text
-        if (Math.random() < settings.textChangeProbability) {
-          const glitched = text
-            .split("")
-            .map((char) => {
-              if (Math.random() < settings.etherealProbability) {
-                return mysticalSymbols[
-                  Math.floor(Math.random() * mysticalSymbols.length)
-                ];
-              }
-              if (Math.random() < 0.2) {
-                return String.fromCharCode(
-                  0x0370 + Math.floor(Math.random() * 50),
-                ); // Greek letters
-              }
-              return char;
-            })
-            .join("");
-          setGlitchText(glitched);
-        }
-
-        setTimeout(() => {
-          setIsGlitching(false);
-          setGlitchText(text);
-        }, settings.glitchDuration);
-      }
-    }, glitchInterval);
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [glitchFactor, randomSeed, text, settings]);
-
-  // Ethereal clip path generation
-  const getEtherealClipPath = () => {
-    const r1 = (randomSeed * 10) % 100;
-    const r2 = (randomSeed * 20) % 100;
-    const offset = settings.maxOffset;
-    return `polygon(${r1 % offset}% 0%, 100% ${r2 % offset}%, ${100 - (r1 % offset)}% 100%, 0% ${100 - (r2 % offset)}%)`;
-  };
 
   return (
     <Component className={cn("relative inline-block", className)}>
@@ -157,33 +111,45 @@ export function GlitchText({
         }}
         transition={{ duration: 0.2 }}
       >
-        {glitchText}
+        {isGlitching ? glitchedVariants[glitchTextIndex] : text}
       </motion.span>
 
-      {/* Ethereal overlay layers */}
-      <motion.span
-        className="absolute left-0 top-0 z-10"
-        style={{
-          color: etherealColors[(etherealPhase + 2) % etherealColors.length],
-          mixBlendMode: "screen",
-        }}
-        animate={{
-          opacity: isGlitching ? [0, 0.7, 0] : 0,
-          x: isGlitching ? [settings.maxOffset, -settings.maxOffset, 0] : 0,
-          clipPath: isGlitching
-            ? [
-                getEtherealClipPath(),
-                getEtherealClipPath(),
-                getEtherealClipPath(),
-              ]
-            : "none",
-        }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
-      >
-        {glitchText}
-      </motion.span>
+      {/* RGB offset overlays */}
+      {isGlitching && (
+        <>
+          <motion.span
+            className="absolute left-0 top-0 z-10"
+            style={{
+              color: "#ff0000", // Red channel offset
+              mixBlendMode: "screen",
+            }}
+            animate={{
+              opacity: [0, 0.7, 0],
+              x: [settings.maxOffset, -settings.maxOffset, 0],
+            }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+          >
+            {glitchedVariants[glitchTextIndex]}
+          </motion.span>
 
-      {/* Mystical aura effect */}
+          <motion.span
+            className="absolute left-0 top-0 z-10"
+            style={{
+              color: "#00ff00", // Green channel offset
+              mixBlendMode: "screen",
+            }}
+            animate={{
+              opacity: [0, 0.7, 0],
+              x: [-settings.maxOffset, settings.maxOffset, 0],
+            }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+          >
+            {glitchedVariants[glitchTextIndex]}
+          </motion.span>
+        </>
+      )}
+
+      {/* Ethereal glow effect */}
       {isGlitching && (
         <motion.div
           className="absolute inset-0 -z-10"
@@ -200,36 +166,6 @@ export function GlitchText({
           }}
         />
       )}
-
-      {/* Ethereal particles */}
-      {isGlitching &&
-        Array.from({ length: 3 }).map((_, i) => (
-          <motion.span
-            key={i}
-            className="pointer-events-none absolute left-0 top-0"
-            style={{
-              color:
-                etherealColors[(etherealPhase + i) % etherealColors.length],
-              opacity: 0.5,
-            }}
-            animate={{
-              y: [0, -10, 0],
-              x: [0, i * 5 - 5, 0],
-              opacity: [0.5, 0, 0.5],
-            }}
-            transition={{
-              duration: 0.5,
-              delay: i * 0.1,
-              repeat: Number.POSITIVE_INFINITY,
-            }}
-          >
-            {
-              mysticalSymbols[
-                Math.floor(Math.random() * mysticalSymbols.length)
-              ]
-            }
-          </motion.span>
-        ))}
     </Component>
   );
 }

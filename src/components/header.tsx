@@ -25,11 +25,7 @@ export function Header() {
           >
             <Shield className="h-5 w-5" />
           </motion.div>
-          <GlitchText
-            text="Secret Politics"
-            className="text-xl font-bold"
-            seed={seed}
-          />
+          <GlitchText text="Secret Politics" className="text-xl font-bold" />
         </Link>
 
         <div className="flex items-center gap-4">
@@ -41,7 +37,7 @@ export function Header() {
             transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
           >
             <Activity className="h-4 w-4" />
-            <GlitchText text="System Active" seed={seed + 1} />
+            <GlitchText text="System Active" />
           </motion.div>
 
           <NavMenu />

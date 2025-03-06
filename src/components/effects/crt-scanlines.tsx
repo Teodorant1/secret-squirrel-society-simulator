@@ -14,7 +14,7 @@ interface CRTScanlinesProps {
 
 export function CRTScanlines({
   className,
-  intensity = "medium",
+  intensity = "light",
   color = "rgba(0, 162, 255, 0.15)",
   seed,
 }: CRTScanlinesProps) {

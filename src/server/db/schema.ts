@@ -8,7 +8,6 @@ import {
   timestamp,
   varchar,
   boolean,
-  pgEnum,
 } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
 
@@ -22,10 +21,101 @@ export const createTable = pgTableCreator(
   (name) => `secret-squirrel-society-simulator_${name}`,
 );
 
-export const question_type = pgEnum("question_type", ["question", "situation"]);
-
 export const cronjob_Runs = createTable("cronjob_Runs", {
   runDate: timestamp("runDate", { withTimezone: true }).primaryKey().notNull(),
+});
+
+export const match1 = createTable("match1", {
+  id: varchar("id", { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: varchar("name", { length: 255 }),
+  creator_owner: varchar("creator_owner", { length: 255 })
+    .notNull()
+    .default(""),
+  password: varchar("password", { length: 255 }),
+  all_questions: varchar("all_questions", { length: 3000 })
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
+  fascists: varchar("fascists", { length: 3000 })
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
+  liberals: varchar("liberals", { length: 3000 })
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
+  failed_elections: integer("failed_elections").notNull().default(0),
+  liberal_laws: integer("liberal_laws").notNull().default(0),
+  fascist_laws: integer("fascist_laws").notNull().default(0),
+  president: varchar("president", { length: 2000 }).notNull().default(""),
+  chancellor: varchar("chancellor", { length: 2000 }).notNull().default(""),
+  ElectionID: varchar("name_id", { length: 2000 }).references(
+    () => election.id,
+  ),
+  stage: varchar("stage", { length: 2000 }).notNull().default(""),
+  substage: varchar("substage", { length: 2000 }).notNull(),
+  hitler: varchar("hitler", { length: 2000 }).notNull(),
+  scheduled_for_deletion: boolean("scheduled_for_deletion").default(false),
+  has_started: boolean("has_started").default(false),
+});
+
+export const election = createTable("election", {
+  id: varchar("id", { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: varchar("name", { length: 2000 }).notNull(),
+  president: varchar("president", { length: 2000 }).notNull(),
+  chancellor: varchar("chancellor", { length: 2000 }).notNull(),
+
+  votes: varchar("votes", { length: 2000 }).notNull(),
+  description: varchar("description", { length: 2000 }).notNull(),
+  author: varchar("author", { length: 255 })
+    .notNull()
+    .references(() => actual_users.username, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  createdById: varchar("createdById", { length: 255 })
+    .notNull()
+    .references(() => actual_users.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  createdAt: timestamp("createdAt", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+  isPublic: boolean("isPublic").default(false),
+});
+
+export const player = createTable("player", {
+  id: varchar("id", { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  username: varchar("username", { length: 255 })
+    .notNull()
+    .references(() => actual_users.username, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  hashed_password: varchar("hashed_password", { length: 255 }).notNull(),
+  score: integer("score").default(0).notNull(),
+  answer: varchar("answer", { length: 255 }).default(""),
+  match: varchar("match", { length: 255 })
+    .notNull()
+    .references(() => match.id, { onDelete: "cascade", onUpdate: "cascade" }),
+
+  liberals: varchar("all_player_ids", { length: 3000 })
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
 });
 
 export const deck = createTable("deck", {
@@ -115,24 +205,6 @@ export const match = createTable("match", {
   has_started: boolean("has_started").default(false),
 });
 
-export const player = createTable("player", {
-  id: varchar("id", { length: 255 })
-    .notNull()
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  username: varchar("username", { length: 255 })
-    .notNull()
-    .references(() => actual_users.username, {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }),
-  hashed_password: varchar("hashed_password", { length: 255 }).notNull(),
-  score: integer("score").default(0).notNull(),
-  answer: varchar("answer", { length: 255 }).default(""),
-  match: varchar("match", { length: 255 })
-    .notNull()
-    .references(() => match.id, { onDelete: "cascade", onUpdate: "cascade" }),
-});
 export const matchRelations = relations(match, ({ many }) => ({
   players: many(player),
 }));
