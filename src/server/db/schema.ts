@@ -35,14 +35,14 @@ export const match = createTable("match", {
     .array()
     .notNull()
     .default(sql`'{}'::text[]`),
-  fascists: varchar("fascists", { length: 3000 })
-    .array()
-    .notNull()
-    .default(sql`'{}'::text[]`),
-  liberals: varchar("liberals", { length: 3000 })
-    .array()
-    .notNull()
-    .default(sql`'{}'::text[]`),
+  // fascists: varchar("fascists", { length: 3000 })
+  //   .array()
+  //   .notNull()
+  //   .default(sql`'{}'::text[]`),
+  // liberals: varchar("liberals", { length: 3000 })
+  //   .array()
+  //   .notNull()
+  //   .default(sql`'{}'::text[]`),
 
   deck: varchar("deck", { length: 3000 })
     .array()
@@ -102,6 +102,7 @@ export const match = createTable("match", {
 
   hitler: varchar("hitler", { length: 2000 }).notNull().default(""),
   isOver: boolean("isOver").notNull().default(false),
+  hitler_has_intel: boolean("hitler_has_intel").notNull().default(false),
   result: varchar("result", { length: 2000 }).default("TBA"),
   scheduled_for_deletion: boolean("scheduled_for_deletion").default(false),
   has_started: boolean("has_started").default(false),
@@ -112,14 +113,20 @@ export const election = createTable("election", {
     .notNull()
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  name: varchar("name", { length: 2000 }).notNull(),
-  president_candidate: varchar("president", { length: 2000 }).notNull(),
-  chancellor_candidate: varchar("chancellor", { length: 2000 }).notNull(),
-  votes: varchar("votes", { length: 2000 }).notNull(),
-  votes_needed: integer("votes").notNull().default(0),
+  president_candidate: varchar("president", { length: 2000 })
+    .notNull()
+    .default("TBA"),
+  chancellor_candidate: varchar("chancellor", { length: 2000 })
+    .notNull()
+    .default("TBA"),
+  // votes: varchar("votes", { length: 2000 }).notNull().default(0),
+  // votes_needed: integer("votes").notNull().default(0),
   match: varchar("match", { length: 255 })
     .notNull()
     .references(() => match.id, { onDelete: "cascade", onUpdate: "cascade" }),
+  created_at: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
 });
 
 export const vote = createTable("vote", {
@@ -210,3 +217,5 @@ export const voteRelations = relations(vote, ({ one }) => ({
     references: [election.id],
   }),
 }));
+
+export type match_type = typeof match.$inferInsert;
