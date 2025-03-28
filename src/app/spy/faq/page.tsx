@@ -19,21 +19,17 @@ const FAQS = [
     answer:
       "The game is designed for 5-10 players, with different role distributions based on the player count.",
   },
-  {
-    question: "How do the theme presets work?",
-    answer:
-      "Each theme preset provides a unique visual experience with custom animations, colors, and styling. You can choose from Game of Thrones, James Bond, Wendigoon, Alexander Vucic, or Trump & Vance themes, or create your own custom theme.",
-  },
+
   {
     question: "Can I create my own custom theme?",
     answer:
-      "Yes! You can customize faction names, colors, symbols, and spacing in the customize page to create your own unique theme.",
+      "Yes! You can customize faction names , title names and flags/symbols in the customize page to create your own unique theme.",
   },
-  {
-    question: "How do I save my custom theme?",
-    answer:
-      "Your custom theme settings are automatically saved to your account when you're logged in. You can switch between your custom theme and presets at any time.",
-  },
+  // {
+  //   question: "How do I save my custom theme?",
+  //   answer:
+  //     "You to your account when you're logged in. You can switch between your custom theme and presets at any time.",
+  // },
 ];
 
 export default function FAQPage() {

@@ -8,7 +8,7 @@ export default function Immersion4Page() {
   return (
     <div className="relative min-h-screen overflow-hidden py-12">
       {/* Abstract Background Pattern */}
-      <motion.div
+      {/* <motion.div
         className="fixed inset-0 opacity-20"
         animate={{
           background: [
@@ -21,7 +21,7 @@ export default function Immersion4Page() {
           repeat: Number.POSITIVE_INFINITY,
           repeatType: "reverse",
         }}
-      />
+      /> */}
 
       <div className="container relative z-10 mx-auto space-y-12">
         <motion.div
@@ -33,47 +33,41 @@ export default function Immersion4Page() {
             Abstract Patterns
           </h1>
         </motion.div>
-
         <div className="grid gap-8 md:grid-cols-2">
-          {/* Morphing Shapes */}
+          Morphing Shapes
           <Card className="relative overflow-hidden border-opacity-20 bg-opacity-20 p-6 backdrop-blur-sm">
             <div className="relative h-[300px]">
               <MorphingShapes />
             </div>
           </Card>
-
-          {/* Flowing Gradient */}
+          Flowing Gradient
           <Card className="relative overflow-hidden border-opacity-20 bg-opacity-20 p-6 backdrop-blur-sm">
             <div className="relative h-[300px]">
               <FlowingGradient />
             </div>
           </Card>
         </div>
-
-        {/* Pulsing Circles */}
+        Pulsing Circles
         <Card className="relative overflow-hidden border-opacity-20 bg-opacity-20 p-6 backdrop-blur-sm">
           <div className="relative h-[200px]">
             <PulsingCircles />
           </div>
         </Card>
-
         <div className="grid gap-8 md:grid-cols-2">
-          {/* Particle Field */}
+          Particle Field
           <Card className="relative overflow-hidden border-opacity-20 bg-opacity-20 p-6 backdrop-blur-sm">
             <div className="relative h-[300px]">
               <ParticleCanvas />
             </div>
           </Card>
-
-          {/* Wave Pattern */}
+          Wave Pattern
           <Card className="relative overflow-hidden border-opacity-20 bg-opacity-20 p-6 backdrop-blur-sm">
             <div className="relative h-[300px]">
               <WavePattern />
             </div>
           </Card>
         </div>
-
-        {/* Connection Lines */}
+        Connection Lines
         <Card className="relative overflow-hidden border-opacity-20 bg-opacity-20 p-6 backdrop-blur-sm">
           <div className="relative h-[300px]">
             <ConnectionLines />
@@ -86,7 +80,7 @@ export default function Immersion4Page() {
 
 function MorphingShapes() {
   return (
-    <div className="absolute inset-0 flex items-center justify-center">
+    <div className="relative inset-0 mx-12 flex items-center justify-center">
       {Array.from({ length: 5 }).map((_, i) => (
         <motion.div
           key={i}

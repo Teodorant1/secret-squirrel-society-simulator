@@ -156,6 +156,7 @@ export const player = createTable("player", {
     .$defaultFn(() => crypto.randomUUID()),
   username: varchar("username", { length: 255 })
     .notNull()
+    .unique()
     .references(() => actual_users.username, {
       onDelete: "cascade",
       onUpdate: "cascade",

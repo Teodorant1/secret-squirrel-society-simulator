@@ -3,16 +3,24 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { CRTScanlines } from "@/components/effects/crt-scanlines";
+// import { CRTScanlines } from "@/components/effects/crt-scanlines";
 import { GlitchText } from "@/components/effects/glitch-text";
 import { TerminalText } from "@/components/effects/terminal-text";
+import ParticleCanvas from "@/components/animations/ParticleCanvas";
+import Secure_terminal from "@/components/effects/secure-terminal";
 import { Shield, Cpu, Network, Lock } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 export default function HomePage() {
   return (
     <div className="relative flex min-h-screen w-[100vh] min-w-full flex-col items-center justify-center overflow-hidden text-center">
+      <Card className="relative overflow-hidden border-opacity-20 bg-opacity-20 p-6 outline-blue-600 backdrop-blur-sm">
+        <div className="relative h-[300px]">
+          <ParticleCanvas />
+        </div>
+      </Card>{" "}
       {/* CRT Scanlines Effect */}
-      <CRTScanlines />
+      {/* <CRTScanlines /> */}
       {/* Digital noise background */}
       <div className="absolute inset-0 opacity-10">
         <svg className="h-full w-full">
@@ -33,10 +41,10 @@ export default function HomePage() {
       </div>
       {/* Grid lines */}
       <div
-        className="absolute left-0 top-0 h-screen w-screen opacity-10"
+        className="absolute left-0 top-0 h-full w-full opacity-10"
         style={{
           backgroundImage:
-            "linear-gradient(to right, #00a2ff 1px, transparent 1px), linear-gradient(to bottom, #00a2ff 1px, transparent 1px)",
+            "linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)",
           backgroundSize: "20px 20px",
         }}
       />
@@ -53,7 +61,8 @@ export default function HomePage() {
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <GlitchText
-            text="SECRET_POLITICS//"
+            text="Secret-Squirrel-Society-S
+            imulator//"
             as="h1"
             glitchFactor={1.5}
             className="font-mono"
@@ -153,6 +162,9 @@ export default function HomePage() {
           </div>
         </motion.div>
       </motion.div>
+      <div className="flex flex-col md:flex-row">
+        <Secure_terminal />
+      </div>
     </div>
   );
 }

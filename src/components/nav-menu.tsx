@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { GlitchText } from "@/components/effects/glitch-text";
+// import { GlitchText } from "@/components/effects/glitch-text";
 
 const links = [
   { href: "/spy", label: "Home" },
@@ -26,7 +26,7 @@ export function NavMenu() {
   return (
     <div className="relative">
       {/* Hamburger button for mobile */}
-      <Button
+      {/* <Button
         variant="ghost"
         size="icon"
         className="lg:hidden"
@@ -34,7 +34,7 @@ export function NavMenu() {
         aria-label={isOpen ? "Close menu" : "Open menu"}
       >
         {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-      </Button>
+      </Button> */}
 
       {/* Desktop menu */}
       <nav className="hidden items-center space-x-4 lg:flex">
@@ -44,7 +44,8 @@ export function NavMenu() {
             href={link.href}
             className="text-sm transition-colors hover:text-primary"
           >
-            <GlitchText text={link.label} />
+            {/* <GlitchText text={link.label} /> */}
+            {link.label}
           </Link>
         ))}
 
@@ -55,13 +56,15 @@ export function NavMenu() {
               href="/spy/profile"
               className="text-sm transition-colors hover:text-primary"
             >
-              <GlitchText text="Profile" />
+              {/* <GlitchText text={"Profile - " + session.user.username} /> */}
+              {"Profile - " + session.user.username}
             </Link>
             <Link
               href="/api/auth/signout"
               className="text-sm transition-colors hover:text-red-500"
             >
-              <GlitchText text="Logout" />
+              {/* <GlitchText text="Logout" /> */}
+              Logout
             </Link>
           </>
         ) : (
@@ -69,70 +72,82 @@ export function NavMenu() {
             href="/api/auth/signin"
             className="text-sm transition-colors hover:text-green-500"
           >
-            <GlitchText text="Login" />
+            {/* <GlitchText text="Login" /> */}
+            Login
           </Link>
         )}
       </nav>
 
       {/* Mobile menu */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.2 }}
-            className="absolute right-0 top-full z-50 mt-2 w-48 rounded-md border bg-black bg-opacity-100 py-1 shadow-lg"
-          >
-            <nav className="flex flex-col rounded-md bg-black bg-opacity-100">
-              {links.map((link, index) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setIsOpen(false)}
-                  className="px-4 py-2 text-sm transition-colors hover:bg-accent"
-                >
-                  <motion.div
-                    initial={{ x: -20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <GlitchText text={link.label} />
-                  </motion.div>
-                </Link>
-              ))}
+      {/* Wrapper to ensure positioning is relative to this container */}
+      <div className="relative">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="lg:hidden"
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label={isOpen ? "Close menu" : "Open menu"}
+        >
+          {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </Button>
 
-              {/* Session-based links in mobile menu */}
-              {session ? (
-                <>
+        {/* Mobile menu (position now relative) */}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="relative mt-2 w-48 rounded-md border bg-black bg-opacity-100 py-1 shadow-lg lg:hidden"
+            >
+              <nav className="flex flex-col rounded-md bg-black bg-opacity-100">
+                {links.map((link) => (
                   <Link
-                    href="/spy/profile"
+                    key={link.href}
+                    href={link.href}
                     onClick={() => setIsOpen(false)}
                     className="px-4 py-2 text-sm transition-colors hover:bg-accent"
                   >
-                    <GlitchText text="Profile" />
+                    {/* <GlitchText text={link.label} /> */}
+                    {link.label}
                   </Link>
+                ))}
+
+                {session ? (
+                  <>
+                    <Link
+                      href="/spy/profile"
+                      onClick={() => setIsOpen(false)}
+                      className="px-4 py-2 text-sm transition-colors hover:bg-accent"
+                    >
+                      {/* <GlitchText text="Profile" /> */}
+                      Profile
+                    </Link>
+                    <Link
+                      href="/api/auth/signout"
+                      onClick={() => setIsOpen(false)}
+                      className="px-4 py-2 text-sm transition-colors hover:text-red-500"
+                    >
+                      {/* <GlitchText text="Logout" /> */}
+                      Logout
+                    </Link>
+                  </>
+                ) : (
                   <Link
-                    href="/api/auth/signout"
+                    href="/api/auth/signin"
                     onClick={() => setIsOpen(false)}
-                    className="px-4 py-2 text-sm transition-colors hover:text-red-500"
+                    className="px-4 py-2 text-sm transition-colors hover:text-green-500"
                   >
-                    <GlitchText text="Logout" />
+                    {/* <GlitchText text="Login" /> */}
+                    Login
                   </Link>
-                </>
-              ) : (
-                <Link
-                  href="/api/auth/signin"
-                  onClick={() => setIsOpen(false)}
-                  className="px-4 py-2 text-sm transition-colors hover:text-green-500"
-                >
-                  <GlitchText text="Login" />
-                </Link>
-              )}
-            </nav>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                )}
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
