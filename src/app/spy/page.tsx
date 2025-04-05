@@ -40,14 +40,14 @@ export default function HomePage() {
         </svg>
       </div>
       {/* Grid lines */}
-      <div
+      {/* <div
         className="absolute left-0 top-0 h-full w-full opacity-10"
         style={{
           backgroundImage:
             "linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)",
           backgroundSize: "20px 20px",
         }}
-      />
+      /> */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

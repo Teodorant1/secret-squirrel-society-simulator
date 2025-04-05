@@ -49,9 +49,9 @@ export default function FAQPage() {
           </AccordionItem>
         ))}
       </Accordion>
-      <div className="mt-8 flex justify-center">
+      {/* <div className="mt-8 flex justify-center">
         <ThemeSelector />
-      </div>
+      </div> */}
     </div>
   );
 }

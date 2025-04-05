@@ -1,16 +1,16 @@
 "use client";
 
-import { useState } from "react";
+// import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Shield, Activity } from "lucide-react";
-import { GlitchText } from "@/components/effects/glitch-text";
+import { Activity } from "lucide-react";
+// import { GlitchText } from "@/components/effects/glitch-text";
 import { NavMenu } from "@/components/nav-menu";
 import { Card } from "@/components/ui/card";
 import { Radio } from "lucide-react";
 import MorphingShapes from "./animations/MorphingShapes";
 export function Header() {
-  const [seed] = useState(Math.random() * 1000);
+  // const [seed] = useState(Math.random() * 1000);
 
   return (
     <motion.header
