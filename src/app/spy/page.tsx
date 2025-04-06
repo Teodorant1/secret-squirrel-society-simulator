@@ -111,7 +111,7 @@ export default function HomePage() {
               />
             </Button>
           </Link>
-          <Link href="/spy/customize">
+          {/* <Link href="/spy/customize">
             <Button
               size="lg"
               variant="outline"
@@ -122,7 +122,7 @@ export default function HomePage() {
                 <span>CUSTOMIZE//</span>
               </span>
             </Button>
-          </Link>
+          </Link> */}
         </motion.div>
 
         {/* Cyberpunk decorative elements */}

@@ -42,7 +42,7 @@ export function NavMenu() {
           <Link
             key={link.href}
             href={link.href}
-            className="text-sm transition-colors hover:text-primary"
+            className="w-fit p-2 text-sm transition-colors hover:text-primary"
           >
             {/* <GlitchText text={link.label} /> */}
             {link.label}
@@ -68,13 +68,22 @@ export function NavMenu() {
             </Link>
           </>
         ) : (
-          <Link
-            href="/api/auth/signin"
-            className="text-sm transition-colors hover:text-green-500"
-          >
-            {/* <GlitchText text="Login" /> */}
-            Login
-          </Link>
+          <>
+            <Link
+              href="/api/auth/signin"
+              className="text-sm transition-colors hover:text-green-500"
+            >
+              {/* <GlitchText text="Login" /> */}
+              Login
+            </Link>
+            <Link
+              href="/spy/register"
+              className="text-sm transition-colors hover:text-green-500"
+            >
+              {/* <GlitchText text="Login" /> */}
+              Register
+            </Link>
+          </>
         )}
       </nav>
 

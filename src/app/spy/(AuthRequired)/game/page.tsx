@@ -300,7 +300,6 @@ export default function CustomizePage() {
     <div className="relative min-h-screen overflow-hidden bg-background">
       {/* CRT Scanlines Effect */}
       {/* <CRTScanlines seed={seed} /> */}
-
       {/* Abstract Background Pattern
       <motion.div
         className="fixed inset-0 opacity-30"
@@ -312,7 +311,6 @@ export default function CustomizePage() {
           } as any
         }
       /> */}
-
       {/* Digital noise background */}
       <div className="fixed inset-0 opacity-5">
         <svg className="h-full w-full">
@@ -331,10 +329,8 @@ export default function CustomizePage() {
           <rect width="100%" height="100%" filter="url(#customizeNoise)" />
         </svg>
       </div>
-
-      {/* Floating Particles
-      <ParticleField /> */}
-
+      {/* Floating Particles */}
+      <ParticleField />
       <div className="container relative z-10 mx-auto max-w-4xl space-y-8 py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -846,7 +842,6 @@ export default function CustomizePage() {
           </div>
         </motion.div>
       </div>
-
       {/* Password Modal */}
       {showPasswordModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
