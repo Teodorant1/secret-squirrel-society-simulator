@@ -42,7 +42,7 @@ export function NavMenu() {
           <Link
             key={link.href}
             href={link.href}
-            className="w-fit p-2 text-sm transition-colors hover:text-primary"
+            className="whitespace-nowrap p-2 text-sm transition-colors hover:text-primary"
           >
             {/* <GlitchText text={link.label} /> */}
             {link.label}
@@ -54,14 +54,14 @@ export function NavMenu() {
           <>
             <Link
               href="/spy/profile"
-              className="text-sm transition-colors hover:text-primary"
+              className="whitespace-nowrap text-sm transition-colors hover:text-primary"
             >
               {/* <GlitchText text={"Profile - " + session.user.username} /> */}
               {"Profile - " + session.user.username}
             </Link>
             <Link
               href="/api/auth/signout"
-              className="text-sm transition-colors hover:text-red-500"
+              className="whitespace-nowrap text-sm transition-colors hover:text-red-500"
             >
               {/* <GlitchText text="Logout" /> */}
               Logout
@@ -71,14 +71,14 @@ export function NavMenu() {
           <>
             <Link
               href="/api/auth/signin"
-              className="text-sm transition-colors hover:text-green-500"
+              className="whitespace-nowrap text-sm transition-colors hover:text-green-500"
             >
               {/* <GlitchText text="Login" /> */}
               Login
             </Link>
             <Link
               href="/spy/register"
-              className="text-sm transition-colors hover:text-green-500"
+              className="whitespace-nowrap text-sm transition-colors hover:text-green-500"
             >
               {/* <GlitchText text="Login" /> */}
               Register
@@ -108,9 +108,9 @@ export function NavMenu() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="relative mt-2 w-48 rounded-md border bg-black bg-opacity-100 py-1 shadow-lg lg:hidden"
+              className="fixed right-2 z-30 mr-2 mt-2 w-fit rounded-md border bg-black bg-opacity-100 py-1 shadow-lg lg:hidden"
             >
-              <nav className="flex flex-col rounded-md bg-black bg-opacity-100">
+              <nav className="z-30 flex flex-col rounded-md bg-black bg-opacity-100">
                 {links.map((link) => (
                   <Link
                     key={link.href}

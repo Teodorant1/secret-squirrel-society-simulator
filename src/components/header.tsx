@@ -14,7 +14,7 @@ export function Header() {
 
   return (
     <motion.header
-      className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+      className="flex-col border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 100, damping: 20 }}
@@ -55,12 +55,14 @@ export function Header() {
             text="Secret-Squirrel-Society-Simulator"
             className="text-xl font-bold"
           /> */}
-          <div>Secret-Squirrel-Society-Simulator</div>
+          <div className="whitespace-nowrap">
+            Secret-Squirrel-Society-Simulator
+          </div>
         </Link>
 
         <div className="ml-12 flex flex-col items-center gap-4 md:flex-row">
           <motion.div
-            className="hidden items-center gap-2 text-sm text-muted-foreground sm:flex"
+            className="hidden items-center gap-2 whitespace-nowrap text-sm text-muted-foreground sm:flex"
             animate={{
               opacity: [0.5, 1, 0.5],
             }}

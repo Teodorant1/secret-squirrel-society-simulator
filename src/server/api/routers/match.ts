@@ -1,28 +1,58 @@
 import { eq } from "drizzle-orm";
 import { hashPassword, sleep } from "@/random-functions/backend/backend1";
 import { z } from "zod";
-
 import {
-  createTRPCRouter,
-  publicProcedure,
-  protectedProcedure,
-} from "@/server/api/trpc";
+  start_game,
+  get_info_on_game,
+  Check_if_player_is_present_in_match,
+  join_game,
+  create_game,
+} from "@/random-functions/backend/backend1";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { actual_users } from "@/server/db/schema";
 
 export const MatchRouter = createTRPCRouter({
   get_data_on_match: protectedProcedure
     .input(
       z.object({
-        match_name: z.string(),
         match_id: z.string(),
+        player_id: z.string(),
         match_password: z.string(),
         player_password: z.string(),
       }),
     )
     .query(async ({ ctx, input }) => {
-      return "existing_match";
+      try {
+        const info = await get_info_on_game(
+          input.match_id,
+          input.player_id,
+          input.match_password,
+          input.player_password,
+        );
+
+        return {
+          error: false,
+          error_description: null,
+          game_info: info,
+        };
+      } catch (error) {
+        console.error("Error in register mutation:", error);
+        if (error instanceof Error) {
+          console.log(error.message);
+          return {
+            error: true,
+            error_description: error.message,
+            game_info: null,
+          };
+        }
+      }
+      return {
+        error: true,
+        error_description: "Something went wrong. Please try again.",
+        game_info: null,
+      };
     }),
-  register: publicProcedure
+  register: protectedProcedure
     .input(
       z.object({
         username: z.string(),

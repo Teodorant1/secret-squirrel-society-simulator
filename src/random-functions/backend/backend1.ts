@@ -14,6 +14,7 @@ const policies = [
   "fascist",
   "fascist",
   "fascist",
+
   "fascist",
   "fascist",
   "fascist",
@@ -123,7 +124,7 @@ function get_config_based_on_number_of_players(number_of_player: number) {
 export async function start_game(
   match_id: string,
   playerID: string,
-  name: string,
+  // name: string,
 ) {
   return await db.transaction(
     async (tx) => {
@@ -159,7 +160,7 @@ export async function start_game(
 
       if (found_match.creator_owner !== playerID) {
         throw new Error(
-          "You are not the owner, please stand by, a elite clown commando is being rerouted to your position",
+          "You are not the owner, please stand by, an elite clown commando unit is being rerouted to your position",
         );
       }
       const config = get_config_based_on_number_of_players(
@@ -291,17 +292,8 @@ export async function get_info_on_game(
   match_id: string,
   playerID: string,
   password: string,
+  player_password: string,
 ) {
-  // const result = await db
-  //   .select()
-  //   .from(match)
-  //   .where(eq(match.id, "your-match-id"))
-  //   .leftJoin(player, eq(player.match, match.id)) // Join players
-  //   .leftJoin(election, eq(election.match, match.id)) // Join elections
-  //   .leftJoin(vote, eq(vote.election, election.id)) // Join votes (nested relation)
-  //   .for("update")
-  //   .limit(1); // Equivalent to findFirst()
-
   return await db.transaction(
     async (tx) => {
       // const locked_match = await tx
@@ -330,7 +322,7 @@ export async function get_info_on_game(
       const players = found_match.players;
 
       const is_present_in_match = Check_if_player_is_present_in_match(
-        password,
+        player_password,
         playerID,
         players,
       );
@@ -382,7 +374,7 @@ export async function get_info_on_game(
   );
 }
 
-function Check_if_player_is_present_in_match(
+export function Check_if_player_is_present_in_match(
   password: string,
   playerName: string,
   all_players: {
