@@ -4,6 +4,7 @@ import type React from "react";
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+// import { ParticleField } from "@/components/animations/particleField";
 // import { CRTScanlines } from "@/components/effects/crt-scanlines";
 import { GlitchText } from "@/components/effects/glitch-text";
 import { Button } from "@/components/ui/button";
@@ -20,32 +21,6 @@ interface Match {
   status: "waiting" | "in-progress" | "completed";
   createdBy: string;
   hasPassword: boolean;
-}
-
-function ParticleField() {
-  return (
-    <div className="pointer-events-none fixed inset-0">
-      {Array.from({ length: 20 }).map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute h-1 w-1 rounded-full bg-blue-500/20"
-          initial={{
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
-          }}
-          animate={{
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
-          }}
-          transition={{
-            duration: Math.random() * 20 + 10,
-            repeat: Number.POSITIVE_INFINITY,
-            ease: "linear",
-          }}
-        />
-      ))}
-    </div>
-  );
 }
 
 export default function CustomizePage() {
@@ -297,7 +272,26 @@ export default function CustomizePage() {
   );
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background">
+    <div className="relative h-full overflow-hidden bg-background">
+      {/* Terminal Output */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.6 }}
+        className="mt-8 h-fit rounded-lg border border-green-500/30 bg-black/70 p-4 font-mono text-sm text-green-400"
+      >
+        <div className="mb-2 flex items-center">
+          <div className="mr-2 h-3 w-3 animate-pulse rounded-full bg-green-500"></div>
+          <div className="text-xs text-green-300">SYSTEM TERMINAL</div>
+        </div>
+        <div className="h-fit space-y-1 overflow-y-auto">
+          {terminalOutput.map((line, index) => (
+            <div key={index} className="leading-tight">
+              {line}
+            </div>
+          ))}
+        </div>
+      </motion.div>
       {/* CRT Scanlines Effect */}
       {/* <CRTScanlines seed={seed} /> */}
       {/* Abstract Background Pattern
@@ -312,7 +306,7 @@ export default function CustomizePage() {
         }
       /> */}
       {/* Digital noise background */}
-      <div className="fixed inset-0 opacity-5">
+      {/* <div className="fixed inset-0 opacity-5">
         <svg className="h-full w-full">
           <filter id="customizeNoise">
             <feTurbulence
@@ -328,9 +322,9 @@ export default function CustomizePage() {
           </filter>
           <rect width="100%" height="100%" filter="url(#customizeNoise)" />
         </svg>
-      </div>
+      </div> */}
       {/* Floating Particles */}
-      <ParticleField />
+      {/* <ParticleField /> */}
       <div className="container relative z-10 mx-auto max-w-4xl space-y-8 py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -348,7 +342,73 @@ export default function CustomizePage() {
             Match search and faction customization
           </p>
         </motion.div>
+        {/* Create New Match Section */}
+        <div className="mb-6 rounded-lg border border-green-500/30 bg-gray-800/30 p-4">
+          <h3 className="mb-3 font-medium text-green-400">
+            Create New Operation
+          </h3>
+          <div className="space-y-3">
+            <div>
+              <label className="mb-1 block text-sm text-gray-400">
+                Operation Name
+              </label>
+              <Input
+                type="text"
+                placeholder="Enter operation name..."
+                value={newMatchName}
+                onChange={(e) => setNewMatchName(e.target.value)}
+                className="w-full border border-green-500/30 bg-gray-800/50 text-white"
+              />
+            </div>
 
+            <div>
+              <label className="mb-1 block text-sm text-gray-400">
+                Operation Password (Optional)
+              </label>
+              <div className="relative">
+                <Input
+                  type={showMatchPassword ? "text" : "password"}
+                  placeholder="Set password for this operation..."
+                  value={newMatchPassword}
+                  onChange={(e) => setNewMatchPassword(e.target.value)}
+                  className="w-full border border-green-500/30 bg-gray-800/50 pr-10 text-white"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowMatchPassword(!showMatchPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white"
+                >
+                  {showMatchPassword ? (
+                    <EyeOffIcon className="h-4 w-4" />
+                  ) : (
+                    <EyeIcon className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <Button
+              onClick={handleStartNewMatch}
+              className="mt-2 w-full bg-green-600 text-white hover:bg-green-700"
+            >
+              <span className="mr-2">START NEW OPERATION</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+            </Button>
+          </div>
+        </div>
         {/* Agent Password Section */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -426,74 +486,6 @@ export default function CustomizePage() {
               transition={{ duration: 0.5 }}
               className="rounded-lg border border-blue-500/30 bg-gray-900/50 p-6 backdrop-blur-sm"
             >
-              {/* Create New Match Section */}
-              <div className="mb-6 rounded-lg border border-green-500/30 bg-gray-800/30 p-4">
-                <h3 className="mb-3 font-medium text-green-400">
-                  Create New Operation
-                </h3>
-                <div className="space-y-3">
-                  <div>
-                    <label className="mb-1 block text-sm text-gray-400">
-                      Operation Name
-                    </label>
-                    <Input
-                      type="text"
-                      placeholder="Enter operation name..."
-                      value={newMatchName}
-                      onChange={(e) => setNewMatchName(e.target.value)}
-                      className="w-full border border-green-500/30 bg-gray-800/50 text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="mb-1 block text-sm text-gray-400">
-                      Operation Password (Optional)
-                    </label>
-                    <div className="relative">
-                      <Input
-                        type={showMatchPassword ? "text" : "password"}
-                        placeholder="Set password for this operation..."
-                        value={newMatchPassword}
-                        onChange={(e) => setNewMatchPassword(e.target.value)}
-                        className="w-full border border-green-500/30 bg-gray-800/50 pr-10 text-white"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowMatchPassword(!showMatchPassword)}
-                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white"
-                      >
-                        {showMatchPassword ? (
-                          <EyeOffIcon className="h-4 w-4" />
-                        ) : (
-                          <EyeIcon className="h-4 w-4" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  <Button
-                    onClick={handleStartNewMatch}
-                    className="mt-2 w-full bg-green-600 text-white hover:bg-green-700"
-                  >
-                    <span className="mr-2">START NEW OPERATION</span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                  </Button>
-                </div>
-              </div>
-
               {/* Search Section */}
               <div className="mb-4">
                 <label className="mb-1 block text-sm text-gray-400">
@@ -821,26 +813,6 @@ export default function CustomizePage() {
             </motion.div>
           </TabsContent>
         </Tabs>
-
-        {/* Terminal Output */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-          className="mt-8 rounded-lg border border-green-500/30 bg-black/70 p-4 font-mono text-sm text-green-400"
-        >
-          <div className="mb-2 flex items-center">
-            <div className="mr-2 h-3 w-3 animate-pulse rounded-full bg-green-500"></div>
-            <div className="text-xs text-green-300">SYSTEM TERMINAL</div>
-          </div>
-          <div className="h-40 space-y-1 overflow-y-auto">
-            {terminalOutput.map((line, index) => (
-              <div key={index} className="leading-tight">
-                {line}
-              </div>
-            ))}
-          </div>
-        </motion.div>
       </div>
       {/* Password Modal */}
       {showPasswordModal && (

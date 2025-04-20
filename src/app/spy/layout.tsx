@@ -5,6 +5,7 @@ import type React from "react";
 import { Header } from "@/components/header";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
+import { ParticleField } from "@/components/animations/particleField";
 
 export default function SpyLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -20,6 +21,7 @@ export default function SpyLayout({ children }: { children: React.ReactNode }) {
           exit={{ opacity: 0, y: -20 }}
           className="container mx-auto p-4"
         >
+          <ParticleField />
           {children}
         </motion.main>
       </AnimatePresence>

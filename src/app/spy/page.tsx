@@ -18,7 +18,7 @@ export default function HomePage() {
         <div className="relative h-[300px]">
           <ParticleCanvas />
         </div>
-      </Card>{" "}
+      </Card>
       {/* CRT Scanlines Effect */}
       {/* <CRTScanlines /> */}
       {/* Digital noise background */}
