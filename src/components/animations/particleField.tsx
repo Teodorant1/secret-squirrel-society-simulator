@@ -8,12 +8,12 @@ export function ParticleField() {
           key={i}
           className="absolute h-1 w-1 rounded-full bg-blue-500/20"
           initial={{
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
+            x: Math.random(),
+            y: Math.random(),
           }}
           animate={{
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
+            x: Math.random(),
+            y: Math.random(),
           }}
           transition={{
             duration: Math.random() * 20 + 10,
