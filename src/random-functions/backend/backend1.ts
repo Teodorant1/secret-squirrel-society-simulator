@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import { db } from "@/server/db";
 import { election, match, player, vote } from "@/server/db/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { error } from "console";
 
 const policies = [
   "liberal",
@@ -123,7 +124,7 @@ function get_config_based_on_number_of_players(number_of_player: number) {
 
 export async function start_game(
   match_id: string,
-  playerID: string,
+  username: string,
   // name: string,
 ) {
   return await db.transaction(
@@ -158,7 +159,7 @@ export async function start_game(
         );
       }
 
-      if (found_match.creator_owner !== playerID) {
+      if (found_match.creator_owner !== username) {
         throw new Error(
           "You are not the owner, please stand by, an elite clown commando unit is being rerouted to your position",
         );
@@ -290,91 +291,82 @@ export async function start_game(
 }
 export async function get_info_on_game(
   match_id: string,
-  playerID: string,
+  username: string,
   password: string,
   player_password: string,
 ) {
-  return await db.transaction(
-    async (tx) => {
-      // const locked_match = await tx
-      //   .select()
-      //   .from(match)
-      //   .where(eq(match.id, match_id))
-      //   .for("update");
+  // const locked_match = await tx
+  //   .select()
+  //   .from(match)
+  //   .where(eq(match.id, match_id))
+  //   .for("update");
 
-      const found_match = await tx.query.match.findFirst({
-        where: eq(match.id, match_id),
+  const found_match = await db.query.match.findFirst({
+    where: eq(match.id, match_id),
+    with: {
+      elections: {
         with: {
-          elections: {
-            with: {
-              votes: true, // Eager load votes
-            },
-          },
-          players: true,
+          votes: true, // Eager load votes
         },
-      });
-      if (!found_match) {
-        throw new Error("Match not found.");
-      }
-      if (found_match.password !== password) {
-        throw new Error("Wrong Password, ACCESS DENIED!");
-      }
-      const players = found_match.players;
-
-      const is_present_in_match = Check_if_player_is_present_in_match(
-        player_password,
-        playerID,
-        players,
-      );
-      if (!is_present_in_match?.ispresent) {
-        throw new Error("You are not present in the match!");
-      }
-
-      // const intel = {
-      //   hitler: found_match.hitler,
-      // };
-      const state = {
-        id: found_match.id,
-        name: found_match.name,
-        creator_owner: found_match.creator_owner,
-        password: found_match.password,
-        failed_elections: found_match.failed_elections,
-        liberal_laws: found_match.liberal_laws,
-        fascist_laws: found_match.fascist_laws,
-        president: found_match.president,
-        chancellor: found_match.chancellor,
-        veto_power_unlocked: found_match.veto_power_unlocked,
-        liberal_faction_name: found_match.liberal_faction_name,
-        fascist_faction_name: found_match.fascist_faction_name,
-        president_role_name: found_match.president_role_name,
-        chancellor_role_name: found_match.chancellor_role_name,
-        hitler_role_name: found_match.hitler_role_name,
-        liberal_faction_image_url: found_match.liberal_faction_image_url,
-        fascist_faction_image_url: found_match.fascist_faction_image_url,
-
-        president_role_image_url: found_match.president_role_image_url,
-        chancellor_role_image_url: found_match.chancellor_role_image_url,
-        hitler_role_image_url: found_match.hitler_role_image_url,
-        stage: found_match.stage,
-        substage: found_match.substage,
-        waiting_on: found_match.waiting_on,
-        isOver: found_match.isOver,
-        result: found_match.result,
-        scheduled_for_deletion: found_match.scheduled_for_deletion,
-        has_started: found_match.has_started,
-      };
-
-      return state;
+      },
+      players: true,
     },
-    {
-      isolationLevel: "read committed",
-      accessMode: "read write",
-      deferrable: true,
-    },
+  });
+  if (!found_match) {
+    throw new Error("Match not found.");
+  }
+  if (found_match.password !== password) {
+    throw new Error("Wrong Password, ACCESS DENIED!");
+  }
+  const players = found_match.players;
+
+  const is_present_in_match = await Check_if_player_is_present_in_match(
+    player_password,
+    username,
+    players,
   );
+  if (!is_present_in_match?.ispresent) {
+    throw new Error("You are not present in the match!");
+  }
+
+  // const intel = {
+  //   hitler: found_match.hitler,
+  // };
+  const state = {
+    id: found_match.id,
+    name: found_match.name,
+    creator_owner: found_match.creator_owner,
+    password: found_match.password,
+    failed_elections: found_match.failed_elections,
+    liberal_laws: found_match.liberal_laws,
+    fascist_laws: found_match.fascist_laws,
+    president: found_match.president,
+    chancellor: found_match.chancellor,
+    veto_power_unlocked: found_match.veto_power_unlocked,
+    liberal_faction_name: found_match.liberal_faction_name,
+    fascist_faction_name: found_match.fascist_faction_name,
+    president_role_name: found_match.president_role_name,
+    chancellor_role_name: found_match.chancellor_role_name,
+    hitler_role_name: found_match.hitler_role_name,
+    liberal_faction_image_url: found_match.liberal_faction_image_url,
+    fascist_faction_image_url: found_match.fascist_faction_image_url,
+
+    president_role_image_url: found_match.president_role_image_url,
+    chancellor_role_image_url: found_match.chancellor_role_image_url,
+    hitler_role_image_url: found_match.hitler_role_image_url,
+    stage: found_match.stage,
+    substage: found_match.substage,
+    waiting_on: found_match.waiting_on,
+    isOver: found_match.isOver,
+    result: found_match.result,
+    scheduled_for_deletion: found_match.scheduled_for_deletion,
+    has_started: found_match.has_started,
+  };
+
+  return state;
 }
 
-export function Check_if_player_is_present_in_match(
+export async function Check_if_player_is_present_in_match(
   password: string,
   playerName: string,
   all_players: {
@@ -392,7 +384,14 @@ export function Check_if_player_is_present_in_match(
   }[],
 ) {
   for (const player of all_players) {
-    if (player.username === playerName && player.hashed_password === password) {
+    console.log("passwords", player.hashed_password, password);
+
+    const comparison = await bcrypt.compare(
+      password.trim(),
+      player.hashed_password,
+    );
+
+    if (player.username === playerName && comparison === true) {
       return {
         ispresent: true,
         isFascist: player.is_fascist,
@@ -408,9 +407,11 @@ export async function join_game(
   match_id: string,
   player_name: string,
   password: string,
+  match_password: string,
 ) {
   return await db.transaction(
     async (tx) => {
+      // console.log(match_id, player_name, password, match_password);
       const locked_match = await tx
         .select()
         .from(match)
@@ -432,6 +433,9 @@ export async function join_game(
       if (!found_match) {
         throw new Error("Match not found.");
       }
+      if (found_match.password !== match_password) {
+        throw new Error("Wrong Password");
+      }
       if (found_match.has_started || found_match.isOver) {
         throw new Error(
           "It is impossible to join the match at this time, it has either already started and/or finished",
@@ -439,11 +443,11 @@ export async function join_game(
       }
 
       const players = found_match.players || [];
-      if (players.length >= 9) {
+      if (players.length == 10) {
         throw new Error("Match is at full capacity and cannot be joined");
       }
 
-      const hashed_password = await hashPassword(password);
+      const hashed_password = await hashPassword(password.trim());
 
       const new_player = await tx
         .insert(player)
@@ -486,47 +490,106 @@ export async function create_game(
   fascist_faction_image_url: string,
   president_role_image_url: string,
   chancellor_role_image_url: string,
-  password: string,
+  hitler_role_image_url: string,
+  matchpassword: string,
 ) {
-  return await db.transaction(
-    async (tx) => {
-      // Insert the new match and return it
-      const new_match_return = await tx
-        .insert(match)
-        .values({
-          name,
-          creator_owner: username,
-          password,
-          liberal_faction_name,
-          fascist_faction_name,
-          president_role_name,
-          chancellor_role_name,
-          hitler_role_name,
-          liberal_faction_image_url,
-          fascist_faction_image_url,
-          president_role_image_url,
-          chancellor_role_image_url,
-        })
-        .returning();
+  // Insert the new match and return it
+  const new_match_return = await db
+    .insert(match)
+    .values({
+      name: name,
+      creator_owner: username,
+      password: matchpassword,
+      liberal_faction_name: liberal_faction_name,
+      fascist_faction_name: fascist_faction_name,
+      president_role_name: president_role_name,
+      chancellor_role_name: chancellor_role_name,
+      hitler_role_name: hitler_role_name,
+      liberal_faction_image_url: liberal_faction_image_url,
+      fascist_faction_image_url: fascist_faction_image_url,
+      president_role_image_url: president_role_image_url,
+      chancellor_role_image_url: chancellor_role_image_url,
+      hitler_role_image_url: hitler_role_image_url,
+    })
+    .returning();
 
-      const new_match = new_match_return[0];
+  const new_match = new_match_return[0];
+  // console.log(match);
+  if (!new_match) {
+    throw new Error("Failed to create match");
+  }
 
-      if (!new_match) {
-        throw new Error("Failed to create match");
-      }
-
-      const create_user_result = await join_game(
-        new_match.id,
-        username,
-        player_password,
-      );
-
-      return { new_match, create_user_result }; // Return the created match
-    },
-    {
-      isolationLevel: "read committed",
-      accessMode: "read write",
-      deferrable: true,
-    },
+  const create_user_result = await join_game(
+    new_match.id,
+    username,
+    player_password,
+    matchpassword,
   );
+
+  return { new_match, create_user_result }; // Return the created match
+
+  // return await db.transaction(
+  //   async (tx) => {
+  //
+
+  // // Insert the new match and return it
+  // const new_match_return = await tx
+  //   .insert(match)
+  //   .values({
+  //     name: name,
+  //     creator_owner: username,
+  //     password: matchpassword,
+  //     liberal_faction_name: liberal_faction_name,
+  //     fascist_faction_name: fascist_faction_name,
+  //     president_role_name: president_role_name,
+  //     chancellor_role_name: chancellor_role_name,
+  //     hitler_role_name: hitler_role_name,
+  //     liberal_faction_image_url: liberal_faction_image_url,
+  //     fascist_faction_image_url: fascist_faction_image_url,
+  //     president_role_image_url: president_role_image_url,
+  //     chancellor_role_image_url: chancellor_role_image_url,
+  //     hitler_role_image_url: hitler_role_image_url,
+  //   })
+  //   .returning();
+  //
+  // const new_match = new_match_return[0];
+  // atch);
+  // if (!new_match) {
+  //   throw new Error("Failed to create match");
+  // }
+  //
+
+  // const create_user_result = await join_game(
+  //   new_match.id,
+  //   username,
+  //   player_password,
+  //   matchpassword,
+  // );
+  //
+
+  // return { new_match, create_user_result }; // Return the created match
+  // },
+  // {
+  //   isolationLevel: "read committed",
+  //   accessMode: "read write",
+  //   deferrable: true,
+  // },
+  // );
+}
+export async function GetAvailableGames() {
+  const available_games = await db.query.match.findMany({
+    where: eq(match.has_started, false),
+    columns: {
+      id: true,
+      name: true,
+      creator_owner: true,
+    },
+    with: {
+      players: {
+        columns: { username: true, id: true },
+      },
+    },
+  });
+
+  return available_games;
 }

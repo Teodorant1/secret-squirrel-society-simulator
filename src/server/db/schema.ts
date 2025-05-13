@@ -26,7 +26,7 @@ export const match = createTable("match", {
     .notNull()
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  name: varchar("name", { length: 255 }),
+  name: varchar("name", { length: 255 }).default("  ").notNull(),
   creator_owner: varchar("creator_owner", { length: 255 })
     .notNull()
     .default(""),
@@ -49,7 +49,7 @@ export const match = createTable("match", {
     .notNull()
     .default(sql`'{}'::text[]`),
 
-  discard_pile: varchar("deck", { length: 3000 })
+  discard_pile: varchar("discard_pile", { length: 3000 })
     .array()
     .notNull()
     .default(sql`'{}'::text[]`),
@@ -134,12 +134,17 @@ export const vote = createTable("vote", {
     .notNull()
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  username: varchar("username", { length: 255 })
+  playerID: varchar("username", { length: 255 })
     .notNull()
-    .references(() => player.username, {
+    .references(() => player.id, {
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
+  username: varchar("username", { length: 255 }).notNull(),
+  // .references(() => player.username, {
+  //   onDelete: "cascade",
+  //   onUpdate: "cascade",
+  // }),
   voting_yes: boolean("voting_yes"),
   election: varchar("election", { length: 255 })
     .notNull()
@@ -156,7 +161,6 @@ export const player = createTable("player", {
     .$defaultFn(() => crypto.randomUUID()),
   username: varchar("username", { length: 255 })
     .notNull()
-    .unique()
     .references(() => actual_users.username, {
       onDelete: "cascade",
       onUpdate: "cascade",
