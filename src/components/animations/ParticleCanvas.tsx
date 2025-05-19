@@ -92,7 +92,12 @@ function ParticleCanvas() {
     };
   }, []);
 
-  return <canvas ref={canvasRef} className="h-full w-full" />;
+  return (
+    <canvas
+      ref={canvasRef}
+      className="h-full max-h-[100vh] w-full max-w-[100vw] sm:max-h-[600px] sm:max-w-[600px]"
+    />
+  );
 }
 
 export default ParticleCanvas;

@@ -40,7 +40,7 @@
   * {
     @apply border-border;
   }
-  body {
+  /* body {
     @apply bg-background text-foreground;
     background: linear-gradient(
       135deg,
@@ -50,6 +50,12 @@
       #008e96 75%,
       #114a74 100%
     );
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+  } */
+
+  body {
+    @apply bg-background text-foreground;
     background-size: 400% 400%;
     animation: gradient 15s ease infinite;
   }

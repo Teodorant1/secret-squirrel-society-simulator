@@ -22,16 +22,14 @@ export const MatchRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       try {
-        console.log("session", ctx.session.user);
-
         const info = await get_info_on_game(
           input.match_id,
           ctx.session.user.username,
           input.match_password,
           input.player_password,
         );
-
-        console.log("info", info);
+        const current_date = new Date();
+        console.error("current_date", current_date);
 
         return {
           error: false,
@@ -59,6 +57,8 @@ export const MatchRouter = createTRPCRouter({
     .input(
       z.object({
         match_id: z.string(),
+        match_password: z.string(),
+        password: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -67,6 +67,8 @@ export const MatchRouter = createTRPCRouter({
         const game = await start_game(
           input.match_id,
           ctx.session.user.username,
+          input.match_password,
+          input.password,
         );
 
         return {

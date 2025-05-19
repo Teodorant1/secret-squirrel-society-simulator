@@ -158,41 +158,6 @@ export default function CustomizePage() {
     return false;
   }
 
-  const start_game = api.match.start_game.useMutation({
-    onSuccess: async (data) => {
-      setIsLoading(false);
-      if (data.error === false) {
-        setTerminalOutput((prev) => [
-          ...prev,
-          "> Create Game action successful. Welcome to the network.",
-        ]);
-      } else {
-        setIsError(true);
-        setErrorText(
-          data.error_description ?? "An unknown error has occurred.",
-        );
-        setTerminalOutput((prev) => [
-          ...prev,
-          `> ERROR: ${data.error_description}`,
-        ]);
-      }
-    },
-  });
-
-  const handle_start_game = () => {
-    if (isLoading) return;
-
-    setIsLoading(true);
-    setIsError(null);
-    setTerminalOutput((prev) => [
-      ...prev,
-      `> Processing handle_join_game for ${"username"}...`,
-    ]);
-    start_game.mutate({
-      match_id: match_id ?? "",
-    });
-  };
-
   const create_game = api.match.create_game.useMutation({
     onSuccess: async (data) => {
       setIsLoading(false);

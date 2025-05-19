@@ -31,7 +31,11 @@ export const match = createTable("match", {
     .notNull()
     .default(""),
   password: varchar("password", { length: 255 }),
-  players_array: varchar("players", { length: 3000 })
+  alive_players: varchar("alive_players", { length: 3000 })
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
+  original_players_array: varchar("original_players_array", { length: 3000 })
     .array()
     .notNull()
     .default(sql`'{}'::text[]`),
@@ -134,7 +138,7 @@ export const vote = createTable("vote", {
     .notNull()
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  playerID: varchar("username", { length: 255 })
+  playerID: varchar("playerID", { length: 255 })
     .notNull()
     .references(() => player.id, {
       onDelete: "cascade",
@@ -224,3 +228,8 @@ export const voteRelations = relations(vote, ({ one }) => ({
 }));
 
 export type match_type = typeof match.$inferInsert;
+export type Player = typeof player.$inferSelect;
+
+export type MatchWithPlayers = match_type & {
+  players: Player[];
+};

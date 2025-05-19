@@ -1,8 +1,15 @@
 import bcrypt from "bcrypt";
 import { db } from "@/server/db";
-import { election, match, player, vote } from "@/server/db/schema";
+import {
+  actual_users,
+  election,
+  match,
+  player,
+  vote,
+  type MatchWithPlayers,
+} from "@/server/db/schema";
 import { eq, and, desc } from "drizzle-orm";
-import { error } from "console";
+export type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 const policies = [
   "liberal",
@@ -125,6 +132,8 @@ function get_config_based_on_number_of_players(number_of_player: number) {
 export async function start_game(
   match_id: string,
   username: string,
+  match_password: string,
+  player_password: string,
   // name: string,
 ) {
   return await db.transaction(
@@ -155,11 +164,20 @@ export async function start_game(
       }
       if (found_match.has_started || found_match.isOver) {
         throw new Error(
-          "It is impossible to join the match at this time, it has either already started and/or finished",
+          "It is impossible to start the match at this time, it has either already started and/or finished",
         );
       }
+      const is_present_in_match = await Check_if_player_is_present_in_match(
+        player_password,
+        username,
+        found_match,
+      );
 
-      if (found_match.creator_owner !== username) {
+      if (
+        found_match.creator_owner !== username ||
+        found_match.password !== match_password ||
+        !is_present_in_match?.ispresent
+      ) {
         throw new Error(
           "You are not the owner, please stand by, an elite clown commando unit is being rerouted to your position",
         );
@@ -175,6 +193,7 @@ export async function start_game(
 
       // const new_players = players.sort(() => Math.random() - 0.5);
 
+      // first shuffle
       const new_players = shuffleArray(players);
       const just_the_names: string[] = [];
 
@@ -185,6 +204,7 @@ export async function start_game(
         console.log(i);
         just_the_names.push(new_players[i]!.username);
       }
+      //second shuffle
       const new_just_the_names = shuffleArray(just_the_names);
       const shuffled_policies = shuffleArray(policies);
 
@@ -194,7 +214,8 @@ export async function start_game(
             .update(match)
             .set({
               president: new_just_the_names[0],
-              players_array: new_just_the_names,
+              alive_players: new_just_the_names,
+              original_players_array: new_just_the_names,
               hitler: new_players[i]!.username,
               hitler_has_intel: config.hitler_has_intel,
               deck: shuffled_policies,
@@ -244,10 +265,10 @@ export async function start_game(
       const current_match_players = current_match?.players;
       const ideology_intel_array: string[] = [];
 
-      const hilter_is_intel =
+      const hitler_is_intel =
         current_match?.hitler + " is " + current_match?.hitler_role_name;
 
-      ideology_intel_array.push(hilter_is_intel);
+      ideology_intel_array.push(hitler_is_intel);
       if (!current_match_players) {
         throw new Error("No players present!");
       }
@@ -301,29 +322,49 @@ export async function get_info_on_game(
   //   .where(eq(match.id, match_id))
   //   .for("update");
 
+  // const found_match = await db.query.match.findFirst({
+  //   where: eq(match.id, match_id),
+  //   with: {
+  //     elections: {
+  //       with: {
+  //         votes: true, // Eager load votes
+  //       },
+  //     },
+  //     players: true,
+  //   },
+  // });
+
   const found_match = await db.query.match.findFirst({
     where: eq(match.id, match_id),
     with: {
       elections: {
         with: {
-          votes: true, // Eager load votes
+          votes: {
+            columns: {
+              // id: true,
+              voting_yes: true,
+              username: true,
+            },
+          },
         },
       },
       players: true,
     },
   });
+
   if (!found_match) {
     throw new Error("Match not found.");
   }
   if (found_match.password !== password) {
     throw new Error("Wrong Password, ACCESS DENIED!");
   }
-  const players = found_match.players;
+
+  console.log("found_match", found_match);
 
   const is_present_in_match = await Check_if_player_is_present_in_match(
     player_password,
     username,
-    players,
+    found_match,
   );
   if (!is_present_in_match?.ispresent) {
     throw new Error("You are not present in the match!");
@@ -333,6 +374,9 @@ export async function get_info_on_game(
   //   hitler: found_match.hitler,
   // };
   const state = {
+    players: is_present_in_match.usernames,
+    player_order: found_match.original_players_array,
+    original_players_array: found_match.original_players_array,
     id: found_match.id,
     name: found_match.name,
     creator_owner: found_match.creator_owner,
@@ -369,23 +413,17 @@ export async function get_info_on_game(
 export async function Check_if_player_is_present_in_match(
   password: string,
   playerName: string,
-  all_players: {
-    match: string;
-    id: string;
-    username: string;
-    hashed_password: string;
-    score: number;
-    is_fascist: boolean;
-    is_hitler: boolean;
-    party: string | null;
-    role: string | null;
-    intel: string[];
-    joined_at: Date;
-  }[],
-) {
-  for (const player of all_players) {
-    console.log("passwords", player.hashed_password, password);
 
+  found_match: MatchWithPlayers,
+) {
+  const the_players = found_match.players;
+
+  const usernamesArray = the_players.map((player) => ({
+    username: player.username,
+    id: player.id,
+  }));
+
+  for (const player of the_players) {
     const comparison = await bcrypt.compare(
       password.trim(),
       player.hashed_password,
@@ -394,8 +432,10 @@ export async function Check_if_player_is_present_in_match(
     if (player.username === playerName && comparison === true) {
       return {
         ispresent: true,
+        isOwner: found_match.creator_owner === playerName ? true : false,
         isFascist: player.is_fascist,
         isHitler: player.is_hitler,
+        usernames: usernamesArray,
       };
     }
   }
@@ -477,6 +517,62 @@ export async function join_game(
     },
   );
 }
+
+export async function seed_players_into_existing_match(
+  match_id: string,
+  // tx: Transaction,
+) {
+  const playerUsernames = ["testuser1", "testuser2", "testuser3", "testuser4"];
+  const playerPassword = "player123";
+
+  for (const username of playerUsernames) {
+    const user_id = `uid-${username}`;
+    const player_id = `player-${username}`;
+    const hashed = await hashPassword(playerPassword);
+
+    // Upsert actual user
+    await db
+      .insert(actual_users)
+      .values({
+        id: user_id,
+        username,
+        email: `${username}@example.com`,
+        password: hashed,
+        image: null,
+      })
+      .onConflictDoUpdate({
+        target: actual_users.username,
+        set: {
+          email: `${username}@example.com`,
+          password: hashed,
+        },
+      });
+
+    // Upsert player
+    await db
+      .insert(player)
+      .values({
+        id: player_id,
+        username,
+        hashed_password: hashed,
+        match: match_id,
+        score: 0,
+        is_fascist: false,
+        is_hitler: false,
+        intel: [],
+      })
+      .onConflictDoUpdate({
+        target: player.id,
+        set: {
+          hashed_password: hashed,
+          match: match_id,
+        },
+      });
+  }
+
+  return { match_id, message: "Test players seeded into match" };
+}
+
 export async function create_game(
   name: string,
   username: string,
@@ -525,6 +621,12 @@ export async function create_game(
     player_password,
     matchpassword,
   );
+  const IS_PRODUCTION = process.env.IS_PRODUCTION;
+  if (IS_PRODUCTION === "false") {
+    console.log("simulating test environment and");
+    const result = await seed_players_into_existing_match(new_match.id);
+    console.log(result);
+  }
 
   return { new_match, create_user_result }; // Return the created match
 
