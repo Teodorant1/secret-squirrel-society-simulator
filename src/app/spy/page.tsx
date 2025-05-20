@@ -14,7 +14,7 @@ import { Card } from "@/components/ui/card";
 export default function HomePage() {
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden text-center md:w-[100vh] md:min-w-full">
-      <Card className="relative overflow-hidden border-opacity-20 bg-opacity-20 p-6 outline-blue-600 backdrop-blur-sm">
+      <Card className="relative mt-3 overflow-hidden border-opacity-20 bg-opacity-20 p-3 outline-blue-600 backdrop-blur-sm">
         <div className="relative h-[300px]">
           <ParticleCanvas />
         </div>

@@ -436,6 +436,7 @@ export async function Check_if_player_is_present_in_match(
         isFascist: player.is_fascist,
         isHitler: player.is_hitler,
         usernames: usernamesArray,
+        player: player,
       };
     }
   }
@@ -470,9 +471,11 @@ export async function join_game(
           players: true,
         },
       });
+
       if (!found_match) {
         throw new Error("Match not found.");
       }
+
       if (found_match.password !== match_password) {
         throw new Error("Wrong Password");
       }
@@ -485,6 +488,19 @@ export async function join_game(
       const players = found_match.players || [];
       if (players.length == 10) {
         throw new Error("Match is at full capacity and cannot be joined");
+      }
+      const isPresent = await Check_if_player_is_present_in_match(
+        password,
+        player_name,
+        found_match,
+      );
+
+      if (isPresent?.ispresent) {
+        return {
+          found_match: found_match,
+          players: found_match.players,
+          singular_new_player: isPresent.player,
+        };
       }
 
       const hashed_password = await hashPassword(password.trim());
@@ -505,9 +521,9 @@ export async function join_game(
       const singular_new_player = new_player[0];
 
       return {
-        found_match,
-        players,
-        singular_new_player,
+        found_match: found_match,
+        players: players,
+        singular_new_player: singular_new_player,
       };
     },
     {
