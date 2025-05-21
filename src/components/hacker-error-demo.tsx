@@ -49,7 +49,6 @@ export function HackerErrorDemo() {
 
       {showError && (
         <HackerError
-          title={`${severity.toUpperCase()}_DETECTED//`}
           message={
             severity === "warning"
               ? "System performance degradation detected. Non-critical systems affected."
@@ -57,8 +56,6 @@ export function HackerErrorDemo() {
                 ? "System error detected. Some functionality may be impaired."
                 : "Critical system failure. Immediate attention required."
           }
-          severity={severity}
-          onRetry={handleRetry}
           onClose={() => setShowError(false)}
         />
       )}

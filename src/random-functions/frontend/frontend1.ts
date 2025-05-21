@@ -4,15 +4,15 @@ export function notInArray<T>(array: T[], value: T): boolean {
   return !array.includes(value);
 }
 
-export function CanBeNominated_for_chancellor(
-  username: string,
-  found_match: game_info_state,
-) {
-  console.log(found_match.players);
+export function CanBeNominated_for_chancellor(found_match: game_info_state) {
+  const not_eligible_people = get_uneligible_people_for_chancellor(found_match);
+  const alive_players = found_match.player_order;
 
-  const alive_players = "";
+  const eligible = alive_players.filter(
+    (player) => !not_eligible_people.includes(player),
+  );
 
-  return "";
+  return eligible;
 }
 
 function get_uneligible_people_for_chancellor(found_match: game_info_state) {
