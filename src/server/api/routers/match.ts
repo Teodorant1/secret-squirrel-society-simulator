@@ -1,5 +1,9 @@
 import { eq } from "drizzle-orm";
-import { hashPassword, sleep } from "@/random-functions/backend/backend1";
+import {
+  GetAllRelevantGames,
+  hashPassword,
+  sleep,
+} from "@/random-functions/backend/backend1";
 import { z } from "zod";
 import {
   start_game,
@@ -12,6 +16,46 @@ import {
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
 export const MatchRouter = createTRPCRouter({
+  nominate_chancellor_candidate: protectedProcedure
+    .input(
+      z.object({
+        match_id: z.string(),
+        match_password: z.string(),
+        player_password: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // const game = await start_game(input.match_id, input.player_id);
+        const game = await start_game(
+          input.match_id,
+          ctx.session.user.username,
+          input.match_password,
+          "input.password",
+        );
+
+        return {
+          game,
+          error: false,
+          error_description: null,
+        };
+      } catch (error) {
+        console.error("Error in start_game mutation:", error);
+        if (error instanceof Error) {
+          console.log(error.message);
+          return {
+            error: true,
+            error_description: error.message,
+            game: null,
+          };
+        }
+        return {
+          error: true,
+          error_description: "Something went wrong. Please try again.",
+          game: null,
+        };
+      }
+    }),
   get_data_on_match: protectedProcedure
     .input(
       z.object({
@@ -194,7 +238,9 @@ export const MatchRouter = createTRPCRouter({
 
   GetAvailableGames: protectedProcedure.query(async ({ ctx, input }) => {
     try {
-      const AvailableGames = await GetAvailableGames();
+      const AvailableGames = await GetAllRelevantGames(
+        ctx.session.user.username,
+      );
 
       // const AvailableGames = [
       //   {

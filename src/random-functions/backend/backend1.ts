@@ -12,6 +12,7 @@ import {
   type MatchWithPlayers,
 } from "@/server/db/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { CanBeNominated_for_chancellor } from "../frontend/frontend1";
 export type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 const policies = [
@@ -132,6 +133,52 @@ function get_config_based_on_number_of_players(number_of_player: number) {
   }
 }
 
+export async function nominate_chancellor(
+  match_id: string,
+  username: string,
+  match_password: string,
+  player_password: string,
+  candidate: string,
+) {
+  const info = await get_info_on_game(
+    match_id,
+    username,
+    match_password,
+    player_password,
+    true,
+  );
+
+  if (username !== info.president) {
+    throw new Error("You ain't the president!");
+  }
+
+  if (
+    CanBeNominated_for_chancellor(candidate, info) &&
+    info.found_match_serverside
+  ) {
+    await db
+      .update(election)
+      .set({ chancellor_candidate: candidate })
+      .where(and(eq(election.match, info.found_match_serverside.id)));
+
+    await db
+      .update(match)
+      .set({
+        substage: substageEnum.enumValues[2],
+        waiting_on: "everyone",
+      })
+      .where(
+        and(
+          eq(election.match, info.found_match_serverside.id),
+          eq(election.is_over, false),
+        ),
+      );
+  } else {
+    throw new Error("Can't nominate that person");
+  }
+  return "op success";
+}
+
 export async function start_game(
   match_id: string,
   username: string,
@@ -221,6 +268,7 @@ export async function start_game(
               stage: stageEnum.enumValues[1],
               substage: substageEnum.enumValues[1],
 
+              has_started: true,
               alive_players: new_just_the_names,
               original_players_array: new_just_the_names,
               hitler: new_players[i]!.username,
@@ -322,6 +370,7 @@ export async function get_info_on_game(
   username: string,
   password: string,
   player_password: string,
+  is_server_side?: boolean,
 ) {
   // const locked_match = await tx
   //   .select()
@@ -354,6 +403,7 @@ export async function get_info_on_game(
             },
           },
         },
+        where: eq(election.is_over, true),
       },
       players: true,
     },
@@ -417,6 +467,9 @@ export async function get_info_on_game(
     result: found_match.result,
     scheduled_for_deletion: found_match.scheduled_for_deletion,
     has_started: found_match.has_started,
+
+    is_server_side: is_server_side,
+    found_match_serverside: is_server_side ? found_match : null,
   };
 
   return state;
@@ -464,88 +517,87 @@ export async function join_game(
   password: string,
   match_password: string,
 ) {
-  return await db.transaction(
-    async (tx) => {
-      // console.log(match_id, player_name, password, match_password);
-      const locked_match = await tx
-        .select()
-        .from(match)
-        .where(eq(match.id, match_id))
-        .for("update");
+  // return await db.transaction(
+  //   async (tx) => {
+  // console.log(match_id, player_name, password, match_password);
+  const locked_match = await db
+    .select()
+    .from(match)
+    .where(eq(match.id, match_id))
+    .for("update");
 
-      // Fetch the match with eager-loaded relations and lock it for update
-      const found_match = await tx.query.match.findFirst({
-        where: eq(match.id, match_id),
+  // Fetch the match with eager-loaded relations and lock it for update
+  const found_match = await db.query.match.findFirst({
+    where: eq(match.id, match_id),
+    with: {
+      elections: {
         with: {
-          elections: {
-            with: {
-              votes: true, // Eager load votes
-            },
-          },
-          players: true,
+          votes: true, // Eager load votes
         },
-      });
-
-      if (!found_match) {
-        throw new Error("Match not found.");
-      }
-
-      if (found_match.password !== match_password) {
-        throw new Error("Wrong Password");
-      }
-      if (found_match.has_started || found_match.isOver) {
-        throw new Error(
-          "It is impossible to join the match at this time, it has either already started and/or finished",
-        );
-      }
-
-      const players = found_match.players || [];
-      if (players.length == 10) {
-        throw new Error("Match is at full capacity and cannot be joined");
-      }
-      const isPresent = await Check_if_player_is_present_in_match(
-        password,
-        player_name,
-        found_match,
-      );
-
-      if (isPresent?.ispresent) {
-        return {
-          found_match: found_match,
-          players: found_match.players,
-          singular_new_player: isPresent.player,
-        };
-      }
-
-      const hashed_password = await hashPassword(password.trim());
-
-      const new_player = await tx
-        .insert(player)
-        .values({
-          match: match_id,
-          username: player_name,
-          hashed_password: hashed_password,
-        })
-        .returning();
-
-      if (!new_player) {
-        throw new Error("couldn't create a new player");
-      }
-
-      const singular_new_player = new_player[0];
-
-      return {
-        found_match: found_match,
-        players: players,
-        singular_new_player: singular_new_player,
-      };
+      },
+      players: true,
     },
-    {
-      isolationLevel: "read committed",
-      accessMode: "read write",
-      deferrable: true,
-    },
+  });
+
+  if (!found_match) {
+    throw new Error("Match not found.");
+  }
+
+  if (found_match.password !== match_password) {
+    throw new Error("Wrong Password");
+  }
+
+  const players = found_match.players || [];
+  if (players.length == 10) {
+    throw new Error("Match is at full capacity and cannot be joined");
+  }
+  const isPresent = await Check_if_player_is_present_in_match(
+    password,
+    player_name,
+    found_match,
   );
+
+  if (isPresent?.ispresent) {
+    return {
+      found_match: found_match,
+      players: found_match.players,
+      singular_new_player: isPresent.player,
+    };
+  }
+  if (found_match.has_started || found_match.isOver) {
+    throw new Error(
+      "It is impossible to join the match at this time, it has either already started and/or finished",
+    );
+  }
+  const hashed_password = await hashPassword(password.trim());
+
+  const new_player = await db
+    .insert(player)
+    .values({
+      match: match_id,
+      username: player_name,
+      hashed_password: hashed_password,
+    })
+    .returning();
+
+  if (!new_player) {
+    throw new Error("couldn't create a new player");
+  }
+
+  const singular_new_player = new_player[0];
+
+  return {
+    found_match: found_match,
+    players: players,
+    singular_new_player: singular_new_player,
+  };
+  // },
+  // {
+  //   isolationLevel: "read committed",
+  //   accessMode: "read write",
+  //   deferrable: true,
+  // },
+  // );
 }
 
 export async function seed_players_into_existing_match(
@@ -724,4 +776,46 @@ export async function GetAvailableGames() {
   });
 
   return available_games;
+}
+
+export async function GetPlayerStartedGames(username: string) {
+  const startedGames = await db.query.match.findMany({
+    where: and(
+      eq(match.has_started, true),
+      // Only include matches where at least one player matches this username
+      // But since we can't filter `with.players` directly, we will filter afterward
+      // This gets all started matches and their players
+      // You can refine this later if needed using subqueries
+    ),
+    columns: {
+      id: true,
+      name: true,
+      creator_owner: true,
+    },
+    with: {
+      players: {
+        columns: { username: true, id: true },
+      },
+    },
+  });
+
+  // Filter the matches to only those the player has joined
+  const joinedMatches = startedGames.filter((match) =>
+    match.players.some((player) => player.username === username),
+  );
+
+  return joinedMatches;
+}
+
+export async function GetAllRelevantGames(username: string) {
+  // 1. Get games that haven't started (available to join)
+  const fresh_games = await GetAvailableGames();
+
+  // 2. Get games that *have* started where the player has joined
+  const startedGames = await GetPlayerStartedGames(username);
+
+  // 3. Combine the two lists
+  const allGames = [...startedGames, ...fresh_games];
+
+  return allGames;
 }

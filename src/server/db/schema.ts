@@ -22,6 +22,14 @@ export const cronjob_Runs = createTable("cronjob_Runs", {
   runDate: timestamp("runDate", { withTimezone: true }).primaryKey().notNull(),
 });
 
+export const waiting_on_enum = pgEnum("player", [
+  "all",
+  "president",
+  "chancellor",
+  "names",
+  "game_over",
+]);
+
 // Define enum values
 export const stageEnum = pgEnum("stage", [
   "lobby",
@@ -145,14 +153,17 @@ export const election = createTable("election", {
     .notNull()
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  president_candidate: varchar("president", { length: 2000 })
+  president_candidate: varchar("president_candidate", { length: 2000 })
     .notNull()
     .default("TBA"),
-  chancellor_candidate: varchar("chancellor", { length: 2000 })
+  chancellor_candidate: varchar("chancellor_candidate", { length: 2000 })
     .notNull()
     .default("TBA"),
   // votes: varchar("votes", { length: 2000 }).notNull().default(0),
   // votes_needed: integer("votes").notNull().default(0),
+
+  is_over: boolean("is_over").notNull().default(false),
+
   match: varchar("match", { length: 255 })
     .notNull()
     .references(() => match.id, { onDelete: "cascade", onUpdate: "cascade" }),

@@ -90,8 +90,8 @@ export default function CustomizePage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const matches = api.match.GetAvailableGames.useQuery(undefined, {
-    // refetchIntervalInBackground: true,
-    // refetchInterval: 10000,
+    refetchIntervalInBackground: true,
+    refetchInterval: 10000,
   });
 
   // const [matches, setMatches] = useState<Match[]>([

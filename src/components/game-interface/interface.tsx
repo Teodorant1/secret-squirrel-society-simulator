@@ -22,7 +22,10 @@ import { GlitchText } from "@/components/effects/glitch-text";
 import { TerminalText } from "@/components/effects/terminal-text";
 import { api } from "@/trpc/react";
 import { useSession } from "next-auth/react";
-import { notInArray } from "@/random-functions/frontend/frontend1";
+import {
+  CanBeNominated_for_chancellor,
+  notInArray,
+} from "@/random-functions/frontend/frontend1";
 
 // nomination , election , ?? potential anarchy , 1st law selection , 2nd law selection , optional_skip
 
@@ -38,6 +41,18 @@ export default function Game_Interface({
   match_id,
 }: Game_Interface_Props) {
   const { data: session } = useSession();
+
+  function show_nominate_button(agent: string) {
+    if (
+      match_query.data?.game_info &&
+      match_query.data.game_info.waiting_on === session?.user.username &&
+      match_query.data.game_info.president === session?.user.username &&
+      CanBeNominated_for_chancellor(agent, match_query.data.game_info)
+    ) {
+      return true;
+    }
+    return false;
+  }
 
   function ShowStartButton() {
     if (
@@ -149,6 +164,44 @@ export default function Game_Interface({
     });
   };
 
+  const nominate_candidate =
+    api.match.nominate_chancellor_candidate.useMutation({
+      onSuccess: async (data) => {
+        setIsLoading(false);
+        if (data.error === false) {
+          setTerminalLines((prev) => [
+            ...prev,
+            "> nominate_chancellor_candidateaction successful. Welcome to the network.",
+          ]);
+          await match_query.refetch();
+        } else {
+          setIsError(true);
+          setErrorText(
+            data.error_description ?? "An unknown error has occurred.",
+          );
+          setTerminalLines((prev) => [
+            ...prev,
+            `> ERROR: ${data.error_description}`,
+          ]);
+        }
+      },
+    });
+
+  const handle_nominate_candidate = () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    setIsError(null);
+    setTerminalLines((prev) => [
+      ...prev,
+      `> Processing handle_start_game for ${"username"}...`,
+    ]);
+    start_game.mutate({
+      match_id: match_id ?? "",
+      password: playerPassword,
+      match_password: match_password,
+    });
+  };
   function PlayersCard() {
     return (
       <Card className="relative overflow-hidden border-blue-500/30 bg-black/50 p-6 backdrop-blur-sm">
@@ -177,8 +230,9 @@ export default function Game_Interface({
           />
         </h3>
         <div className="space-y-2">
-          {match_query.data?.game_info?.has_started ? (
-            "Game hasn't started yet!"
+          {match_query.data?.game_info?.has_started !== true ? (
+            "Game hasn't started yet!" +
+            match_query.data?.game_info?.has_started?.valueOf()
           ) : (
             <div>
               {match_query.data?.game_info?.original_players_array &&
@@ -204,12 +258,21 @@ export default function Game_Interface({
                         <div className="relative p-4">
                           <div className="flex items-center justify-between font-mono">
                             <span>
-                              OPERATIVE_{agent} {"  "}
+                              {agent} {"  "}
                               {match_query.data.game_info?.player_order &&
                                 notInArray(
                                   match_query.data.game_info?.player_order,
                                   agent,
-                                ) && <div className="">ELIMINATED</div>}
+                                ) && (
+                                  <div className="m-3 bg-red-600 p-3 text-white">
+                                    ELIMINATED
+                                  </div>
+                                )}
+                              {show_nominate_button(agent) && (
+                                <button className="m-3 bg-black p-3 text-white">
+                                  NOMINATE AS CHANCELLOR
+                                </button>
+                              )}
                             </span>
                             <Badge
                               // variant={
@@ -541,13 +604,7 @@ export default function Game_Interface({
           transition={{ duration: 0.8 }}
           className="grid gap-6 md:grid-cols-2"
         >
-          {match_query.data?.game_info?.player_order && (
-            <SurveillanceCard
-              title="ACTIVE_OPERATIVES//"
-              data={PLAYERS}
-              type="players"
-            />
-          )}
+          {match_query.data?.game_info?.player_order && <PlayersCard />}
           <SurveillanceCard
             title="ACTIVE_OPERATIVES//"
             data={PLAYERS}

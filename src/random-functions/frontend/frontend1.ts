@@ -4,7 +4,14 @@ export function notInArray<T>(array: T[], value: T): boolean {
   return !array.includes(value);
 }
 
-export function CanBeNominated_for_chancellor(found_match: game_info_state) {
+export function IsInArray<T>(array: T[], value: T): boolean {
+  return array.includes(value);
+}
+
+export function CanBeNominated_for_chancellor(
+  username: string,
+  found_match: game_info_state,
+) {
   const not_eligible_people = get_uneligible_people_for_chancellor(found_match);
   const alive_players = found_match.player_order;
 
@@ -12,10 +19,14 @@ export function CanBeNominated_for_chancellor(found_match: game_info_state) {
     (player) => !not_eligible_people.includes(player),
   );
 
-  return eligible;
+  const is_eligible = IsInArray(eligible, username);
+
+  return is_eligible;
 }
 
-function get_uneligible_people_for_chancellor(found_match: game_info_state) {
+export function get_uneligible_people_for_chancellor(
+  found_match: game_info_state,
+) {
   if (found_match.player_order.length > 5) {
     const not_eligible_people = [
       found_match.last_Chancellor,
