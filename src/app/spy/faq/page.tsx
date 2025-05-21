@@ -1,4 +1,4 @@
-import { CRTScanlines } from "@/components/effects/crt-scanlines";
+"@/components/effects/crt-scanlines";
 import { GlitchText } from "@/components/effects/glitch-text";
 import {
   Accordion,
@@ -31,27 +31,27 @@ const FAQS = [
   //     "You to your account when you're logged in. You can switch between your custom theme and presets at any time.",
   // },
 ];
-
 export default function FAQPage() {
   return (
-    <div className="container relative max-w-3xl py-12">
-      <CRTScanlines />
-      <h1 className="mb-8 text-center text-4xl font-bold">
-        <GlitchText text={"Frequently Asked Questions"} />
-      </h1>
-      <Accordion type="single" collapsible className="w-full">
-        {FAQS.map((faq, index) => (
-          <AccordionItem key={index} value={`item-${index}`}>
-            <AccordionTrigger>
-              <GlitchText text={faq.question} />
-            </AccordionTrigger>
-            <AccordionContent>{faq.answer}</AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
-      {/* <div className="mt-8 flex justify-center">
-        <ThemeSelector />
-      </div> */}
+    <div className="flex min-h-screen items-start justify-center px-4">
+      <div className="container relative max-w-3xl py-12">
+        <h1 className="mb-8 text-center text-4xl font-bold">
+          <GlitchText text={"Frequently Asked Questions"} />
+        </h1>
+        <Accordion type="single" collapsible className="w-full">
+          {FAQS.map((faq, index) => (
+            <AccordionItem key={index} value={`item-${index}`}>
+              <AccordionTrigger>
+                <GlitchText text={faq.question} />
+              </AccordionTrigger>
+              <AccordionContent>{faq.answer}</AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+        {/* <div className="mt-8 flex justify-center">
+          <ThemeSelector />
+        </div> */}
+      </div>
     </div>
   );
 }

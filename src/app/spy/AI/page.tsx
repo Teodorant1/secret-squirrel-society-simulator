@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Brain, Lock, Terminal, Cpu, Power, AlertTriangle } from "lucide-react";
-import { CRTScanlines } from "@/components/effects/crt-scanlines";
+
 import { GlitchText } from "@/components/effects/glitch-text";
 import { TerminalText } from "@/components/effects/terminal-text";
 
@@ -93,8 +93,6 @@ export default function AIPage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
-      <CRTScanlines intensity="medium" seed={seed} />
-
       {/* Malfunction effects when warning shown */}
       {showWarning && (
         <motion.div

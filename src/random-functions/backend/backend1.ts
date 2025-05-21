@@ -4,7 +4,10 @@ import {
   actual_users,
   election,
   match,
+  match_type,
   player,
+  stageEnum,
+  substageEnum,
   vote,
   type MatchWithPlayers,
 } from "@/server/db/schema";
@@ -214,6 +217,10 @@ export async function start_game(
             .update(match)
             .set({
               president: new_just_the_names[0],
+              waiting_on: new_just_the_names[0],
+              stage: stageEnum.enumValues[1],
+              substage: substageEnum.enumValues[1],
+
               alive_players: new_just_the_names,
               original_players_array: new_just_the_names,
               hitler: new_players[i]!.username,
@@ -384,8 +391,13 @@ export async function get_info_on_game(
     failed_elections: found_match.failed_elections,
     liberal_laws: found_match.liberal_laws,
     fascist_laws: found_match.fascist_laws,
+
     president: found_match.president,
     chancellor: found_match.chancellor,
+
+    last_President: found_match.last_President,
+    last_Chancellor: found_match.last_Chancellor,
+
     veto_power_unlocked: found_match.veto_power_unlocked,
     liberal_faction_name: found_match.liberal_faction_name,
     fascist_faction_name: found_match.fascist_faction_name,
@@ -409,6 +421,8 @@ export async function get_info_on_game(
 
   return state;
 }
+
+export type game_info_state = Awaited<ReturnType<typeof get_info_on_game>>;
 
 export async function Check_if_player_is_present_in_match(
   password: string,

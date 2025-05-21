@@ -9,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertTriangle, Lock, Shield, Eye, FileWarning } from "lucide-react";
 import { GlitchText } from "@/components/effects/glitch-text";
 import { TerminalText } from "@/components/effects/terminal-text";
-import { CRTScanlines } from "@/components/effects/crt-scanlines";
 
 export default function MuseumPage() {
   const [selectedAnomaly, setSelectedAnomaly] = useState<string | null>(null);
@@ -31,8 +30,6 @@ export default function MuseumPage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
-      <CRTScanlines />
-
       {/* Containment Breach Alert */}
       <AnimatePresence>
         {containmentBreach && (

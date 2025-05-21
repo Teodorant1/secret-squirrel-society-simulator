@@ -5,6 +5,7 @@ import {
   timestamp,
   varchar,
   boolean,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -20,6 +21,26 @@ export const createTable = pgTableCreator(
 export const cronjob_Runs = createTable("cronjob_Runs", {
   runDate: timestamp("runDate", { withTimezone: true }).primaryKey().notNull(),
 });
+
+// Define enum values
+export const stageEnum = pgEnum("stage", [
+  "lobby",
+  "election",
+  "legislation",
+  "executive_action",
+  "game_over",
+]);
+
+export const substageEnum = pgEnum("substage", [
+  "lobby",
+  "nominating",
+  "voting",
+  "voting_result",
+  "president_discard",
+  "chancellor_discard",
+  "power_action",
+  "game_over",
+]);
 
 export const match = createTable("match", {
   id: varchar("id", { length: 255 })
@@ -110,6 +131,13 @@ export const match = createTable("match", {
   result: varchar("result", { length: 2000 }).default("TBA"),
   scheduled_for_deletion: boolean("scheduled_for_deletion").default(false),
   has_started: boolean("has_started").default(false),
+
+  last_President: varchar("last_President", { length: 2000 })
+    .notNull()
+    .default(""),
+  last_Chancellor: varchar("last_Chancellor", { length: 2000 })
+    .notNull()
+    .default(""),
 });
 
 export const election = createTable("election", {

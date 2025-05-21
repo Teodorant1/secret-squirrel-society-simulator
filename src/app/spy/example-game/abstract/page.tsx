@@ -16,7 +16,7 @@ import {
   Lock,
   Cpu,
 } from "lucide-react";
-import { CRTScanlines } from "@/components/effects/crt-scanlines";
+
 import { GlitchText } from "@/components/effects/glitch-text";
 import { TerminalText } from "@/components/effects/terminal-text";
 
@@ -62,7 +62,6 @@ export default function AbstractExampleGame() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
       {/* CRT Scanlines Effect */}
-      <CRTScanlines intensity="medium" color="rgba(0, 162, 255, 0.15)" />
 
       {/* Abstract Background Pattern */}
       <motion.div

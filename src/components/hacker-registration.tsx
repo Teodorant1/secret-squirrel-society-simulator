@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Lock, User, Mail, Cpu, CheckCircle } from "lucide-react";
-import { CRTScanlines } from "@/components/effects/crt-scanlines";
+
 import { GlitchText } from "@/components/effects/glitch-text";
 import { TerminalText } from "@/components/effects/terminal-text";
 import { HackerError } from "./hacker-error";
@@ -78,8 +78,6 @@ export function HackerRegistration({ className }: { className?: string }) {
 
   return (
     <div className={`relative ${className}`}>
-      <CRTScanlines intensity="light" seed={seed} />
-
       <Card className="relative mx-auto max-w-md overflow-hidden border-blue-500/30 bg-black/70 p-6 backdrop-blur-sm">
         <div className="mb-6 text-center">
           <GlitchText
@@ -108,7 +106,12 @@ export function HackerRegistration({ className }: { className?: string }) {
           </div>
         ) : (
           <>
-            {isError && <HackerError message={errorText} />}
+            {isError && (
+              <HackerError
+                message={errorText}
+                onClose={() => setIsError(false)}
+              />
+            )}
 
             <form
               onSubmit={(e) => e.preventDefault()}

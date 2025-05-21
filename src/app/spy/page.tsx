@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { motion } from "framer-motion";
-// import { CRTScanlines } from "@/components/effects/crt-scanlines";
+//  "@/components/effects/crt-scanlines";
 import { GlitchText } from "@/components/effects/glitch-text";
 import { TerminalText } from "@/components/effects/terminal-text";
 import ParticleCanvas from "@/components/animations/ParticleCanvas";
@@ -20,7 +20,7 @@ export default function HomePage() {
         </div>
       </Card>
       {/* CRT Scanlines Effect */}
-      {/* <CRTScanlines /> */}
+      {/*  */}
       {/* Digital noise background */}
       <div className="absolute inset-0 opacity-10">
         <svg className="h-full w-full">

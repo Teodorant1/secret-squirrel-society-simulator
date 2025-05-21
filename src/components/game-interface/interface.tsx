@@ -17,12 +17,12 @@ import {
   Shield,
   Terminal,
 } from "lucide-react";
-import { CRTScanlines } from "@/components/effects/crt-scanlines";
+
 import { GlitchText } from "@/components/effects/glitch-text";
 import { TerminalText } from "@/components/effects/terminal-text";
 import { api } from "@/trpc/react";
 import { useSession } from "next-auth/react";
-import { match } from "assert";
+import { notInArray } from "@/random-functions/frontend/frontend1";
 
 // nomination , election , ?? potential anarchy , 1st law selection , 2nd law selection , optional_skip
 
@@ -203,7 +203,14 @@ export default function Game_Interface({
                         />
                         <div className="relative p-4">
                           <div className="flex items-center justify-between font-mono">
-                            <span>OPERATIVE_{agent}</span>
+                            <span>
+                              OPERATIVE_{agent} {"  "}
+                              {match_query.data.game_info?.player_order &&
+                                notInArray(
+                                  match_query.data.game_info?.player_order,
+                                  agent,
+                                ) && <div className="">ELIMINATED</div>}
+                            </span>
                             <Badge
                               // variant={
                               //   agent.status === "COMPROMISED" ? "destructive" : "outline"

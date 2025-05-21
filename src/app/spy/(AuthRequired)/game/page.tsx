@@ -5,7 +5,7 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 // import { ParticleField } from "@/components/animations/particleField";
-// import { CRTScanlines } from "@/components/effects/crt-scanlines";
+//  "@/components/effects/crt-scanlines";
 import { GlitchText } from "@/components/effects/glitch-text";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -453,7 +453,7 @@ export default function CustomizePage() {
             </div>
           </motion.div>
           {/* CRT Scanlines Effect */}
-          {/* <CRTScanlines seed={seed} /> */}
+          {/*  */}
           {/* Abstract Background Pattern
       <motion.div
         className="fixed inset-0 opacity-30"

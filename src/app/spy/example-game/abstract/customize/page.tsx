@@ -4,7 +4,7 @@ import type React from "react";
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { CRTScanlines } from "@/components/effects/crt-scanlines";
+
 import { GlitchText } from "@/components/effects/glitch-text";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -299,7 +299,6 @@ export default function CustomizePage() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
       {/* CRT Scanlines Effect */}
-      <CRTScanlines seed={seed} />
 
       {/* Abstract Background Pattern
       <motion.div
