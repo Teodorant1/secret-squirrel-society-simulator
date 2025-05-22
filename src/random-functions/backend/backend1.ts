@@ -257,7 +257,7 @@ export async function start_game(
       //second shuffle
       const new_just_the_names = shuffleArray(just_the_names);
       const shuffled_policies = shuffleArray(policies);
-
+      console.error("fascists numbers", config.fascist_numbers);
       for (let i = 0; i < config.fascist_numbers; i++) {
         if (i === 0) {
           await tx
@@ -319,6 +319,7 @@ export async function start_game(
 
       const current_match_players = current_match?.players;
       const ideology_intel_array: string[] = [];
+      const liberal_ideology_intel_array: string[] = ["You are a liberal"];
 
       const hitler_is_intel =
         current_match?.hitler + " is " + current_match?.hitler_role_name;
@@ -357,6 +358,17 @@ export async function start_game(
             ),
           );
       }
+
+      await tx
+        .update(player)
+        .set({ intel: liberal_ideology_intel_array })
+        .where(
+          and(
+            eq(player.is_fascist, false),
+            eq(player.is_hitler, false),
+            eq(player.match, current_match.id),
+          ),
+        );
     },
     {
       isolationLevel: "read committed",
@@ -430,7 +442,14 @@ export async function get_info_on_game(
   // const intel = {
   //   hitler: found_match.hitler,
   // };
+
+  const single_player = found_match.players.filter(
+    (player) => player.username === username,
+  );
+
   const state = {
+    this_player: single_player[0],
+
     players: is_present_in_match.usernames,
     player_order: found_match.original_players_array,
     original_players_array: found_match.original_players_array,

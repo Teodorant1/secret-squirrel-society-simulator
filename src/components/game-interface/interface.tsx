@@ -71,11 +71,11 @@ export default function Game_Interface({
       match_password: match_password,
       player_password: playerPassword,
     },
-    {
-      refetchOnWindowFocus: true,
-      refetchOnMount: true,
-      refetchInterval: 10000,
-    },
+    // {
+    //   refetchOnWindowFocus: true,
+    //   refetchOnMount: true,
+    //   refetchInterval: 10000,
+    // },
   );
 
   //   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -164,7 +164,7 @@ export default function Game_Interface({
     });
   };
 
-  const nominate_candidate =
+  const nominate_chancellor_candidate =
     api.match.nominate_chancellor_candidate.useMutation({
       onSuccess: async (data) => {
         setIsLoading(false);
@@ -187,7 +187,7 @@ export default function Game_Interface({
       },
     });
 
-  const handle_nominate_candidate = () => {
+  const handle_nominate_chancellor_candidate = (candidate: string) => {
     if (isLoading) return;
 
     setIsLoading(true);
@@ -196,12 +196,31 @@ export default function Game_Interface({
       ...prev,
       `> Processing handle_start_game for ${"username"}...`,
     ]);
-    start_game.mutate({
+    nominate_chancellor_candidate.mutate({
       match_id: match_id ?? "",
-      password: playerPassword,
-      match_password: match_password,
+      match_password: playerPassword,
+      player_password: match_password,
+      candidate: candidate,
     });
   };
+
+  function getPlayer_badge(agent: string) {
+    if (agent === match_query.data?.game_info?.chancellor) {
+      return match_query.data?.game_info?.chancellor_role_name;
+    }
+    if (
+      agent === match_query.data?.game_info?.president &&
+      agent === match_query.data?.game_info?.last_President
+    ) {
+      return match_query.data?.game_info?.president_role_name;
+    }
+    if (agent === match_query.data?.game_info?.president) {
+      return match_query.data?.game_info?.president_role_name + " Candidate";
+    }
+
+    return "";
+  }
+
   function PlayersCard() {
     return (
       <Card className="relative overflow-hidden border-blue-500/30 bg-black/50 p-6 backdrop-blur-sm">
@@ -217,7 +236,6 @@ export default function Game_Interface({
             ease: "linear",
           }}
         />
-
         <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold">
           <Users className="h-5 w-5 text-blue-400" />
 
@@ -269,36 +287,17 @@ export default function Game_Interface({
                                   </div>
                                 )}
                               {show_nominate_button(agent) && (
-                                <button className="m-3 bg-black p-3 text-white">
+                                <button
+                                  onClick={() => {
+                                    handle_nominate_chancellor_candidate(agent);
+                                  }}
+                                  className="m-3 bg-black p-3 text-white"
+                                >
                                   NOMINATE AS CHANCELLOR
                                 </button>
                               )}
                             </span>
-                            <Badge
-                              // variant={
-                              //   agent.status === "COMPROMISED" ? "destructive" : "outline"
-                              // }
-                              variant={"outline"}
-                              // className={
-                              //   agent.status !== "COMPROMISED"
-                              //     ? "border-blue-500/30 text-blue-300"
-                              //     : ""
-                              // }
-                              className={"border-blue-500/30 text-blue-300"}
-                            >
-                              {agent}
-                              {/* Add small warning indicator for compromised status */}
-                              {true && (
-                                <motion.div
-                                  className="ml-1 inline-block h-1 w-1 rounded-full bg-amber-500"
-                                  animate={{ opacity: [0.6, 1, 0.6] }}
-                                  transition={{
-                                    duration: 1.5,
-                                    repeat: Number.POSITIVE_INFINITY,
-                                  }}
-                                />
-                              )}
-                            </Badge>
+                            {getPlayer_badge(agent)}
                           </div>
                         </div>
                       </Card>
@@ -311,39 +310,64 @@ export default function Game_Interface({
       </Card>
     );
   }
-  function ParticleField() {
+
+  function Intel_Card({ title }: { title: string }) {
     return (
-      <div className="pointer-events-none fixed inset-0">
-        {Array.from({ length: 30 }).map((_, i) => (
+      <Card className="relative overflow-hidden border-blue-500/30 bg-black/50 p-6 backdrop-blur-sm">
+        {/* Scan line animation */}
+        <motion.div
+          className="absolute inset-0 h-1 w-full bg-blue-400/10"
+          animate={{
+            top: ["0%", "100%", "0%"],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: "linear",
+          }}
+        />
+
+        <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold">
+          <FileText className="h-5 w-5 text-blue-400" />
+          <GlitchText text={title} className="font-mono" />
+          {/* Add small warning indicator */}
           <motion.div
-            key={i}
-            className="absolute h-0.5 w-0.5 rounded-full bg-blue-500/10"
-            initial={{
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight,
-              scale: Math.random() * 0.5 + 0.5,
-            }}
-            animate={{
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight,
-              scale: [1, 1.5, 1],
-            }}
-            transition={{
-              duration: Math.random() * 30 + 20,
-              repeat: Number.POSITIVE_INFINITY,
-              ease: "linear",
-              scale: {
-                duration: Math.random() * 2 + 1,
-                repeat: Number.POSITIVE_INFINITY,
-                ease: "easeInOut",
-              },
-            }}
+            className="ml-2 h-1.5 w-1.5 rounded-full bg-red-600"
+            animate={{ opacity: [0.6, 1, 0.6] }}
+            transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
           />
-        ))}
-      </div>
+        </h3>
+        <div className="space-y-2">
+          {match_query.data?.game_info?.this_player?.intel.map(
+            (item, index) => (
+              <motion.div
+                key={index}
+                whileHover={{
+                  scale: 1.01,
+                  transition: { duration: 0.2 },
+                }}
+                className="group"
+              >
+                <Card className="relative overflow-hidden border-blue-500/20 bg-black/70">
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent"
+                    initial={{ x: "100%" }}
+                    whileHover={{ x: "0%" }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                  />
+                  <div className="relative p-4">
+                    <div className="font-mono text-sm text-blue-300/80">
+                      {item}
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            ),
+          )}
+        </div>
+      </Card>
     );
   }
-
   function SurveillanceCard({
     title,
     data,
@@ -605,6 +629,9 @@ export default function Game_Interface({
           className="grid gap-6 md:grid-cols-2"
         >
           {match_query.data?.game_info?.player_order && <PlayersCard />}
+          {match_query.data?.game_info && (
+            <Intel_Card title={"INTELLIGENCE_REPORTS//"} />
+          )}
           <SurveillanceCard
             title="ACTIVE_OPERATIVES//"
             data={PLAYERS}

@@ -2,16 +2,15 @@ import { eq } from "drizzle-orm";
 import {
   GetAllRelevantGames,
   hashPassword,
+  nominate_chancellor,
   sleep,
 } from "@/random-functions/backend/backend1";
 import { z } from "zod";
 import {
   start_game,
   get_info_on_game,
-  Check_if_player_is_present_in_match,
   join_game,
   create_game,
-  GetAvailableGames,
 } from "@/random-functions/backend/backend1";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
@@ -22,37 +21,43 @@ export const MatchRouter = createTRPCRouter({
         match_id: z.string(),
         match_password: z.string(),
         player_password: z.string(),
+        candidate: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
         // const game = await start_game(input.match_id, input.player_id);
-        const game = await start_game(
+
+        const nominated_chancellor = await nominate_chancellor(
           input.match_id,
           ctx.session.user.username,
           input.match_password,
-          "input.password",
+          input.player_password,
+          input.candidate,
         );
 
         return {
-          game,
+          nominated_chancellor: nominated_chancellor,
           error: false,
           error_description: null,
         };
       } catch (error) {
-        console.error("Error in start_game mutation:", error);
+        console.error(
+          "Error in nominate_chancellor_candidate mutation:",
+          error,
+        );
         if (error instanceof Error) {
           console.log(error.message);
           return {
             error: true,
             error_description: error.message,
-            game: null,
+            nominated_chancellor: null,
           };
         }
         return {
           error: true,
           error_description: "Something went wrong. Please try again.",
-          game: null,
+          nominated_chancellor: null,
         };
       }
     }),
