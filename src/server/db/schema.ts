@@ -90,6 +90,26 @@ export const match = createTable("match", {
   failed_elections: integer("failed_elections").notNull().default(0),
   liberal_laws: integer("liberal_laws").notNull().default(0),
   fascist_laws: integer("fascist_laws").notNull().default(0),
+
+  fascist_laws_array: varchar("fascist_laws_array", { length: 3000 })
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
+  liberal_laws_array: varchar("liberal_laws_array", { length: 3000 })
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
+
+  chancellor_laws_pile: varchar("chancellor_laws_pile", { length: 3000 })
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
+
+  president_laws_pile: varchar("president_laws_pile", { length: 3000 })
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
+
   president: varchar("president", { length: 2000 }).notNull().default(""),
   chancellor: varchar("chancellor", { length: 2000 }).notNull().default(""),
   veto_power_unlocked: boolean("veto_power_unlocked").default(false).notNull(),
@@ -162,7 +182,13 @@ export const election = createTable("election", {
   // votes: varchar("votes", { length: 2000 }).notNull().default(0),
   // votes_needed: integer("votes").notNull().default(0),
 
+  voting_list: varchar("voting_list", { length: 3000 })
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
+
   is_over: boolean("is_over").notNull().default(false),
+  passed: boolean("passed"),
 
   match: varchar("match", { length: 255 })
     .notNull()

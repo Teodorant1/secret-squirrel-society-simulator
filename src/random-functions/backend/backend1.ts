@@ -40,33 +40,35 @@ const policies = [
 
 // Fascist track for 5-6 players
 export const fascistTrack_1 = [
-  { policy: 1, action: null },
-  { policy: 2, action: null },
-  { policy: 3, action: "PeekNextThreePolicies" },
-  { policy: 4, action: "Execution" },
-  { policy: 5, action: "Execution" },
-  { policy: 6, action: "Fascist Victory!" },
+  "None",
+  "None",
+  "PeekNextThreePolicies",
+  "Execution",
+  "Execution",
+  "Fascist Victory!",
 ];
 
 // Fascist track for 7-8 players
 export const fascistTrack_2 = [
-  { policy: 1, action: null },
-  { policy: 2, action: "InvestigatePlayer" },
-  { policy: 3, action: "SpecialElection" },
-  { policy: 4, action: "Execution" },
-  { policy: 5, action: "Execution" },
-  { policy: 6, action: "Fascist Victory!" },
+  "None",
+  "InvestigatePlayer",
+  "SpecialElection",
+  "Execution",
+  "Execution",
+  "Fascist Victory!",
 ];
 
 // Fascist track for 9-10 players
 export const fascistTrack_3 = [
-  { policy: 1, action: null },
-  { policy: 2, action: "InvestigatePlayer" },
-  { policy: 3, action: "PolicyPeek" },
-  { policy: 4, action: "Execution" },
-  { policy: 5, action: "Execution" },
-  { policy: 6, action: "Fascist Victory!" },
+  "None",
+  "InvestigatePlayer",
+  "PolicyPeek",
+  "Execution",
+  "Execution",
+  "Fascist Victory!",
 ];
+
+export const liberal_track = ["None", "None", "None", "None", "Victory!"];
 
 export function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array]; // Create a copy to avoid mutating the original array
@@ -97,36 +99,42 @@ function get_config_based_on_number_of_players(number_of_player: number) {
     case 5:
       return {
         fascist_track: fascistTrack_1,
+        liberal_track: liberal_track,
         fascist_numbers: 2,
         hitler_has_intel: true,
       };
     case 6:
       return {
         fascist_track: fascistTrack_1,
+        liberal_track: liberal_track,
         fascist_numbers: 2,
         hitler_has_intel: true,
       };
     case 7:
       return {
         fascist_track: fascistTrack_2,
+        liberal_track: liberal_track,
         fascist_numbers: 3,
         hitler_has_intel: false,
       };
     case 8:
       return {
         fascist_track: fascistTrack_2,
+        liberal_track: liberal_track,
         fascist_numbers: 3,
         hitler_has_intel: false,
       };
     case 9:
       return {
         fascist_track: fascistTrack_3,
+        liberal_track: liberal_track,
         fascist_numbers: 4,
         hitler_has_intel: false,
       };
     default:
       return {
         fascist_track: fascistTrack_3,
+        liberal_track: liberal_track,
         fascist_numbers: 4,
         hitler_has_intel: false,
       };
@@ -268,6 +276,9 @@ export async function start_game(
               stage: stageEnum.enumValues[1],
               substage: substageEnum.enumValues[1],
 
+              fascist_laws_array: config.fascist_track,
+              liberal_laws_array: config.liberal_track,
+
               has_started: true,
               alive_players: new_just_the_names,
               original_players_array: new_just_the_names,
@@ -353,6 +364,17 @@ export async function start_game(
           .where(
             and(
               eq(player.is_fascist, true),
+              eq(player.is_hitler, false),
+              eq(player.match, current_match.id),
+            ),
+          );
+
+        await tx
+          .update(player)
+          .set({ intel: ["You are Hitler!"] })
+          .where(
+            and(
+              eq(player.is_fascist, true),
               eq(player.is_hitler, true),
               eq(player.match, current_match.id),
             ),
@@ -369,7 +391,15 @@ export async function start_game(
             eq(player.match, current_match.id),
           ),
         );
+      const the_election = await tx
+        .insert(election)
+        .values({
+          match: current_match.id,
+          president_candidate: current_match.president,
+        })
+        .returning();
     },
+
     {
       isolationLevel: "read committed",
       accessMode: "read write",
@@ -415,7 +445,7 @@ export async function get_info_on_game(
             },
           },
         },
-        where: eq(election.is_over, true),
+        // where: eq(election.is_over, true),
       },
       players: true,
     },
@@ -447,8 +477,30 @@ export async function get_info_on_game(
     (player) => player.username === username,
   );
 
+  const config = get_config_based_on_number_of_players(
+    found_match.players.length,
+  );
+
+  const all_elections = found_match.elections;
+
+  const finishedElections = all_elections.filter((e) => e.is_over);
+  const ongoingElection = all_elections.find((e) => !e.is_over); // only one expected
+
+  const chancellor_laws =
+    single_player[0]?.username === found_match.chancellor
+      ? found_match.chancellor_laws_pile
+      : null;
+
+  const president_laws =
+    single_player[0]?.username === found_match.president
+      ? found_match.president_laws_pile
+      : null;
+
   const state = {
     this_player: single_player[0],
+
+    chancellor_laws: chancellor_laws,
+    president_laws: president_laws,
 
     players: is_present_in_match.usernames,
     player_order: found_match.original_players_array,
@@ -457,9 +509,16 @@ export async function get_info_on_game(
     name: found_match.name,
     creator_owner: found_match.creator_owner,
     password: found_match.password,
+
     failed_elections: found_match.failed_elections,
-    liberal_laws: found_match.liberal_laws,
-    fascist_laws: found_match.fascist_laws,
+    finishedElections: finishedElections,
+    ongoingElection: ongoingElection ?? null,
+
+    liberal_laws_number: found_match.liberal_laws,
+    fascist_laws_number: found_match.fascist_laws,
+
+    fascist_laws: config.fascist_track,
+    liberal_laws: config.liberal_track,
 
     president: found_match.president,
     chancellor: found_match.chancellor,
@@ -496,6 +555,46 @@ export async function get_info_on_game(
 
 export type game_info_state = Awaited<ReturnType<typeof get_info_on_game>>;
 
+export async function vote_in_election(
+  match_id: string,
+  match_password: string,
+  username: string,
+  player_password: string,
+  voting_yes: boolean,
+  president_candidate: string,
+  chancellor_candidate: string,
+) {
+  const info = await get_info_on_game(
+    match_id,
+    username,
+    match_password,
+    player_password,
+    true,
+  );
+  if (
+    info.ongoingElection &&
+    president_candidate === info.ongoingElection.president_candidate &&
+    chancellor_candidate === info.ongoingElection.chancellor_candidate &&
+    info.ongoingElection.voting_list.includes(username)
+  ) {
+    const casted_vote = await db
+      .insert(vote)
+      .values({
+        election: info.ongoingElection.id,
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        playerID: info.this_player!.id!,
+        username: username,
+        voting_yes: voting_yes,
+      })
+      .returning();
+
+    const spray_voter_with_UV_fluid = "await db.";
+
+    return casted_vote[0];
+  } else {
+    throw new Error("No election interferrence allowed");
+  }
+}
 export async function Check_if_player_is_present_in_match(
   password: string,
   playerName: string,
@@ -624,7 +723,7 @@ export async function seed_players_into_existing_match(
   // tx: Transaction,
 ) {
   const playerUsernames = ["testuser1", "testuser2", "testuser3", "testuser4"];
-  const playerPassword = "player123";
+  const playerPassword = "password";
 
   for (const username of playerUsernames) {
     const user_id = `uid-${username}`;

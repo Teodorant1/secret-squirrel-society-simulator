@@ -16,6 +16,8 @@ import {
   AlertTriangle,
   Shield,
   Terminal,
+  History,
+  Vote,
 } from "lucide-react";
 
 import { GlitchText } from "@/components/effects/glitch-text";
@@ -47,6 +49,8 @@ export default function Game_Interface({
       match_query.data?.game_info &&
       match_query.data.game_info.waiting_on === session?.user.username &&
       match_query.data.game_info.president === session?.user.username &&
+      match_query.data.game_info.stage === "election" &&
+      match_query.data.game_info.substage === "nominating" &&
       CanBeNominated_for_chancellor(agent, match_query.data.game_info)
     ) {
       return true;
@@ -204,6 +208,50 @@ export default function Game_Interface({
     });
   };
 
+  const vote_in_elections = api.match.vote_in_elections.useMutation({
+    onSuccess: async (data) => {
+      setIsLoading(false);
+      if (data.error === false) {
+        setTerminalLines((prev) => [...prev, "> Voting action successful."]);
+      } else {
+        setIsError(true);
+        setErrorText(
+          data.error_description ?? "An unknown error has occurred.",
+        );
+        setTerminalLines((prev) => [
+          ...prev,
+          `> ERROR: ${data.error_description}`,
+        ]);
+        await match_query.refetch();
+      }
+    },
+  });
+  const handle_vote_in_elections = (
+    president_candidate: string,
+    chancellor_candidate: string,
+    voting_yes: boolean,
+    match_id: string,
+    match_password: string,
+    player_password: string,
+  ) => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    setIsError(null);
+    setTerminalLines((prev) => [
+      ...prev,
+      `> Processing handle_vote_in_elections for ${"username"}...`,
+    ]);
+    vote_in_elections.mutate({
+      match_id: match_id,
+      president_candidate: president_candidate,
+      chancellor_candidate: chancellor_candidate,
+      voting_yes: voting_yes,
+      match_password: match_password,
+      player_password: player_password,
+    });
+  };
+
   function getPlayer_badge(agent: string) {
     if (agent === match_query.data?.game_info?.chancellor) {
       return match_query.data?.game_info?.chancellor_role_name;
@@ -221,6 +269,104 @@ export default function Game_Interface({
     return "";
   }
 
+  function VotingCard({ onVote }: { onVote: (vote: "ja" | "nein") => void }) {
+    return (
+      <Card className="relative overflow-hidden border-yellow-500/30 bg-black/50 p-6 backdrop-blur-sm">
+        <motion.div
+          className="absolute inset-0 h-1 w-full bg-yellow-400/10"
+          animate={{ top: ["0%", "100%", "0%"] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+        />
+        <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold">
+          <Vote className="h-5 w-5 text-yellow-400" />
+          <GlitchText text="VOTING ROUND//" className="font-mono" />
+        </h3>
+
+        <div className="mb-4 font-mono text-sm text-white">
+          Do you approve the government of{" "}
+          <span className="text-blue-400">
+            {match_query.data?.game_info?.ongoingElection?.president_candidate}
+          </span>{" "}
+          for {" " + match_query.data?.game_info?.president_role_name + " "} and{" "}
+          <span className="text-purple-400">
+            {match_query.data?.game_info?.ongoingElection?.chancellor_candidate}
+            {" for "} {match_query.data?.game_info?.chancellor_role_name + " "}
+          </span>
+          ?
+        </div>
+
+        <div className="flex gap-4">
+          <button
+            onClick={() => onVote("ja")}
+            className="rounded-lg bg-green-600 px-4 py-2 text-white transition hover:bg-green-700"
+          >
+            VOTE FOR
+          </button>
+          <button
+            onClick={() => onVote("nein")}
+            className="rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
+          >
+            VOTE AGAINST
+          </button>
+        </div>
+      </Card>
+    );
+  }
+  function PreviousElectionsCard() {
+    return (
+      <Card className="relative overflow-hidden border-green-500/30 bg-black/50 p-6 backdrop-blur-sm">
+        <motion.div
+          className="absolute inset-0 h-1 w-full bg-green-400/10"
+          animate={{ top: ["0%", "100%", "0%"] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+        />
+        <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold">
+          <History className="h-5 w-5 text-green-400" />
+          <GlitchText text="ELECTION LOG//" className="font-mono" />
+        </h3>
+        <div className="space-y-2">
+          {match_query.data?.game_info?.finishedElections.length === 0 ? (
+            <p className="text-sm text-gray-400">No elections yet.</p>
+          ) : (
+            match_query.data?.game_info?.finishedElections.map(
+              (election, index) => (
+                <Card
+                  key={index}
+                  className={`border p-4 ${
+                    election.passed
+                      ? "border-green-500/40 bg-green-800/10"
+                      : "border-red-500/40 bg-red-800/10"
+                  }`}
+                >
+                  <div className="flex justify-between font-mono text-sm">
+                    <span>
+                      <strong>
+                        {match_query.data?.game_info?.president_role_name}:
+                      </strong>{" "}
+                      {election.president_candidate}
+                    </span>
+                    <span>
+                      <strong>
+                        {match_query.data?.game_info?.chancellor_role_name}:
+                      </strong>{" "}
+                      {election.chancellor_candidate}
+                    </span>
+                    <span
+                      className={
+                        election.passed ? "text-green-400" : "text-red-400"
+                      }
+                    >
+                      {election.passed ? "PASSED" : "REJECTED"}
+                    </span>
+                  </div>
+                </Card>
+              ),
+            )
+          )}
+        </div>
+      </Card>
+    );
+  }
   function PlayersCard() {
     return (
       <Card className="relative overflow-hidden border-blue-500/30 bg-black/50 p-6 backdrop-blur-sm">
@@ -483,18 +629,7 @@ export default function Game_Interface({
     return (
       <Card className="relative overflow-hidden border-blue-500/30 bg-black/50 p-6 backdrop-blur-sm">
         {/* Data stream animation */}
-        <motion.div
-          className="absolute bottom-0 left-0 right-0 h-[1px] bg-blue-400/30"
-          animate={{
-            scaleX: [0, 1],
-            x: ["0%", "100%"],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Number.POSITIVE_INFINITY,
-            ease: "linear",
-          }}
-        />
+        <motion.div className="absolute bottom-0 left-0 right-0 h-[1px] bg-blue-400/30" />
 
         <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold">
           <Icon className="h-5 w-5 text-blue-400" />
@@ -503,50 +638,39 @@ export default function Game_Interface({
         <Progress value={progress} className="h-2 bg-blue-950/50">
           <motion.div
             className={`h-full ${type === "primary" ? "bg-blue-500" : "bg-red-500"}`}
-            initial={{ width: 0 }}
+            initial={false}
             animate={{
               width: `${progress}%`,
-              opacity: [0.7, 1, 0.7],
             }}
-            transition={{
-              width: { duration: 1, ease: "easeOut" },
-              opacity: {
-                duration: 3,
-                repeat: Number.POSITIVE_INFINITY,
-                ease: "easeInOut",
-              },
-            }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
           />
         </Progress>
         <div className="mt-4 space-y-2">
-          {milestones.map((milestone, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ scale: 1.02 }}
-              className="group"
-            >
-              <Card
-                className={`relative overflow-hidden border-blue-500/20 bg-black/70 p-4 ${index < progress / 25 ? "bg-blue-900/10" : ""}`}
+          {milestones.map((milestone, index) => {
+            const isActive = index + 1 < progress;
+
+            return (
+              <motion.div
+                key={index} // Use something stable and unique
+                whileHover={{ scale: 1.02 }}
+                className="group"
               >
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100"
-                  initial={false}
-                  animate={{
-                    backgroundPosition: ["100% 0%", "0% 0%"],
-                  }}
-                  transition={{ duration: 1.5, ease: "easeInOut" }}
-                />
-                <div className="relative">
-                  <p className="font-mono text-sm text-blue-300/80">
-                    {milestone}
-                  </p>
-                </div>
-              </Card>
-            </motion.div>
-          ))}
+                <Card
+                  className={`relative overflow-hidden border-blue-500/20 bg-black/70 p-4 ${
+                    isActive ? "bg-blue-600" : ""
+                  }`}
+                >
+                  {/* Gradient hover effect only appears on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                  <div className="relative">
+                    <p className="font-mono text-sm text-blue-300/80">
+                      {milestone}+{isActive ? " ACTIVATED!" : ""}
+                    </p>
+                  </div>
+                </Card>
+              </motion.div>
+            );
+          })}
         </div>
       </Card>
     );
@@ -632,34 +756,32 @@ export default function Game_Interface({
           {match_query.data?.game_info && (
             <Intel_Card title={"INTELLIGENCE_REPORTS//"} />
           )}
-          <SurveillanceCard
-            title="ACTIVE_OPERATIVES//"
-            data={PLAYERS}
-            type="players"
-          />
-          <SurveillanceCard
-            title="INTELLIGENCE_REPORTS//"
-            data={INTEL_REPORTS}
-            type="intel"
-          />
         </motion.div>
-
-        <div className="grid gap-6 md:grid-cols-2">
-          <ProgressCard
-            title="RESISTANCE_OPERATIONS//"
-            progress={40}
-            milestones={RESISTANCE_MILESTONES}
-            icon={Shield}
-            type="primary"
-          />
-          <ProgressCard
-            title="SHADOW_OPERATIONS//"
-            progress={60}
-            milestones={INFILTRATOR_MILESTONES}
-            icon={AlertTriangle}
-            type="destructive"
-          />
-        </div>
+        {match_query.data?.game_info?.fascist_laws &&
+          match_query.data?.game_info?.liberal_laws && (
+            <div className="grid gap-6 md:grid-cols-2">
+              <ProgressCard
+                title={
+                  match_query.data.game_info.liberal_faction_name +
+                  " OPERATIONS//"
+                }
+                progress={match_query.data.game_info.liberal_laws_number}
+                milestones={match_query.data.game_info.liberal_laws}
+                icon={Shield}
+                type="primary"
+              />
+              <ProgressCard
+                title={
+                  match_query.data.game_info.fascist_faction_name +
+                  " SHADOW_OPERATIONS//"
+                }
+                progress={match_query.data.game_info.fascist_laws_number}
+                milestones={match_query.data.game_info.fascist_laws}
+                icon={AlertTriangle}
+                type="destructive"
+              />
+            </div>
+          )}
 
         <Card className="relative overflow-hidden border-blue-500/30 bg-black/50 p-6 backdrop-blur-sm">
           {/* Terminal animation */}

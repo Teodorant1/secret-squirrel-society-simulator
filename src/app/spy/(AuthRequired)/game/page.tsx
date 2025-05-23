@@ -181,29 +181,6 @@ export default function CustomizePage() {
     },
   });
 
-  const join_game = api.match.join_game.useMutation({
-    onSuccess: async (data) => {
-      setIsLoading(false);
-      if (data.error === false) {
-        setTerminalOutput((prev) => [
-          ...prev,
-          "> Join Game action successful. Welcome to the network.",
-        ]);
-        sethasStartedGame(true);
-        setmatch_id(data.game!.found_match.id);
-      } else {
-        setIsError(true);
-        setErrorText(
-          data.error_description ?? "An unknown error has occurred.",
-        );
-        setTerminalOutput((prev) => [
-          ...prev,
-          `> ERROR: ${data.error_description}`,
-        ]);
-      }
-    },
-  });
-
   const handle_Create_game = () => {
     if (isLoading) return;
 
@@ -239,7 +216,28 @@ export default function CustomizePage() {
         "https://i.icanvas.com/3607?d=2&sh=h&t=1734534059",
     });
   };
-
+  const join_game = api.match.join_game.useMutation({
+    onSuccess: async (data) => {
+      setIsLoading(false);
+      if (data.error === false) {
+        setTerminalOutput((prev) => [
+          ...prev,
+          "> Join Game action successful. Welcome to the network.",
+        ]);
+        sethasStartedGame(true);
+        setmatch_id(data.game!.found_match.id);
+      } else {
+        setIsError(true);
+        setErrorText(
+          data.error_description ?? "An unknown error has occurred.",
+        );
+        setTerminalOutput((prev) => [
+          ...prev,
+          `> ERROR: ${data.error_description}`,
+        ]);
+      }
+    },
+  });
   const handle_join_game = (match_id: string) => {
     if (isLoading) return;
 

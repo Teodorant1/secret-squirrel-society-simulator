@@ -11,10 +11,61 @@ import {
   get_info_on_game,
   join_game,
   create_game,
+  vote_in_election,
 } from "@/random-functions/backend/backend1";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
 export const MatchRouter = createTRPCRouter({
+  vote_in_elections: protectedProcedure
+    .input(
+      z.object({
+        match_id: z.string(),
+        match_password: z.string(),
+        player_password: z.string(),
+        president_candidate: z.string(),
+        chancellor_candidate: z.string(),
+        voting_yes: z.boolean(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // const game = await start_game(input.match_id, input.player_id);
+
+        const election_result = await vote_in_election(
+          input.match_id,
+          input.match_password,
+          ctx.session.user.username,
+          input.player_password,
+          input.voting_yes,
+          input.president_candidate,
+          input.chancellor_candidate,
+        );
+
+        return {
+          election_result: election_result,
+          error: false,
+          error_description: null,
+        };
+      } catch (error) {
+        console.error(
+          "Error in nominate_chancellor_candidate mutation:",
+          error,
+        );
+        if (error instanceof Error) {
+          console.log(error.message);
+          return {
+            error: true,
+            error_description: error.message,
+            election_result: null,
+          };
+        }
+        return {
+          error: true,
+          error_description: "Something went wrong. Please try again.",
+          election_result: null,
+        };
+      }
+    }),
   nominate_chancellor_candidate: protectedProcedure
     .input(
       z.object({
