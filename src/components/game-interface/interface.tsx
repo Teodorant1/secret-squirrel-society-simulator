@@ -19,7 +19,6 @@ import {
   History,
   Vote,
 } from "lucide-react";
-
 import { GlitchText } from "@/components/effects/glitch-text";
 import { TerminalText } from "@/components/effects/terminal-text";
 import { api } from "@/trpc/react";
@@ -213,6 +212,7 @@ export default function Game_Interface({
       setIsLoading(false);
       if (data.error === false) {
         setTerminalLines((prev) => [...prev, "> Voting action successful."]);
+        await match_query.refetch();
       } else {
         setIsError(true);
         setErrorText(
@@ -227,12 +227,12 @@ export default function Game_Interface({
     },
   });
   const handle_vote_in_elections = (
-    president_candidate: string,
-    chancellor_candidate: string,
+    // president_candidate: string,
+    // chancellor_candidate: string,
     voting_yes: boolean,
-    match_id: string,
-    match_password: string,
-    player_password: string,
+    // match_id: string,
+    // match_password: string,
+    // player_password: string,
   ) => {
     if (isLoading) return;
 
@@ -243,12 +243,14 @@ export default function Game_Interface({
       `> Processing handle_vote_in_elections for ${"username"}...`,
     ]);
     vote_in_elections.mutate({
-      match_id: match_id,
-      president_candidate: president_candidate,
-      chancellor_candidate: chancellor_candidate,
+      match_id: match_id!,
+      president_candidate:
+        match_query.data?.game_info?.ongoingElection?.president_candidate ?? "",
+      chancellor_candidate:
+        match_query.data?.game_info?.ongoingElection?.president_candidate ?? "",
       voting_yes: voting_yes,
       match_password: match_password,
-      player_password: player_password,
+      player_password: playerPassword,
     });
   };
 
@@ -269,7 +271,7 @@ export default function Game_Interface({
     return "";
   }
 
-  function VotingCard({ onVote }: { onVote: (vote: "ja" | "nein") => void }) {
+  function VotingCard() {
     return (
       <Card className="relative overflow-hidden border-yellow-500/30 bg-black/50 p-6 backdrop-blur-sm">
         <motion.div
@@ -281,7 +283,6 @@ export default function Game_Interface({
           <Vote className="h-5 w-5 text-yellow-400" />
           <GlitchText text="VOTING ROUND//" className="font-mono" />
         </h3>
-
         <div className="mb-4 font-mono text-sm text-white">
           Do you approve the government of{" "}
           <span className="text-blue-400">
@@ -294,21 +295,27 @@ export default function Game_Interface({
           </span>
           ?
         </div>
-
-        <div className="flex gap-4">
-          <button
-            onClick={() => onVote("ja")}
-            className="rounded-lg bg-green-600 px-4 py-2 text-white transition hover:bg-green-700"
-          >
-            VOTE FOR
-          </button>
-          <button
-            onClick={() => onVote("nein")}
-            className="rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
-          >
-            VOTE AGAINST
-          </button>
-        </div>
+        {match_query.data?.game_info?.ongoingElection?.chancellor_candidate &&
+          match_query.data?.game_info?.ongoingElection?.president_candidate && (
+            <div className="flex gap-4">
+              <button
+                onClick={() => {
+                  handle_vote_in_elections(true);
+                }}
+                className="rounded-lg bg-green-600 px-4 py-2 text-white transition hover:bg-green-700"
+              >
+                {isLoading ? "..." : "VOTE FOR"}
+              </button>
+              <button
+                onClick={() => {
+                  handle_vote_in_elections(false);
+                }}
+                className="rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
+              >
+                {isLoading ? "..." : "VOTE AGAINST"}
+              </button>
+            </div>
+          )}
       </Card>
     );
   }

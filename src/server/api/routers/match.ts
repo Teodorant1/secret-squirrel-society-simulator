@@ -1,9 +1,7 @@
-import { eq } from "drizzle-orm";
 import {
   GetAllRelevantGames,
-  hashPassword,
   nominate_chancellor,
-  sleep,
+  tally_vote_results,
 } from "@/random-functions/backend/backend1";
 import { z } from "zod";
 import {
@@ -41,16 +39,22 @@ export const MatchRouter = createTRPCRouter({
           input.chancellor_candidate,
         );
 
+        const voting_list = election_result.updated_voting_list;
+
+        if (voting_list?.length === 0) {
+          await tally_vote_results(
+            election_result.election_id,
+            election_result.alive_players,
+          );
+        }
+
         return {
           election_result: election_result,
           error: false,
           error_description: null,
         };
       } catch (error) {
-        console.error(
-          "Error in nominate_chancellor_candidate mutation:",
-          error,
-        );
+        console.error("Error in vote_in_elections mutation:", error);
         if (error instanceof Error) {
           console.log(error.message);
           return {

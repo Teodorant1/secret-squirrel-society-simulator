@@ -214,7 +214,7 @@ export const vote = createTable("vote", {
   //   onDelete: "cascade",
   //   onUpdate: "cascade",
   // }),
-  voting_yes: boolean("voting_yes"),
+  voting_yes: boolean("voting_yes").notNull(),
   election: varchar("election", { length: 255 })
     .notNull()
     .references(() => election.id, {
