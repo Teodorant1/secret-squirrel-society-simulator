@@ -94,6 +94,57 @@ export async function sleep(ms: number): Promise<void> {
   });
 }
 
+async function set_up_next_election(
+  found_match: match_type,
+  is_special_election?: boolean,
+  special_election_successor?: string,
+) {
+  if (!found_match?.alive_players) {
+    throw new Error("can't access found_match?.alive_players ");
+  }
+  if (!found_match?.last_regular_president) {
+    throw new Error("can't access found_match?.last_regular_president ");
+  }
+  const next_president = get_next_president(
+    found_match.last_regular_president,
+    found_match.alive_players,
+  );
+  if (!found_match.id) {
+    throw new Error("Can't access found_match.id");
+  }
+
+  const actual_candidate = is_special_election
+    ? special_election_successor
+    : next_president;
+
+  const next_election = await db
+    .insert(election)
+    .values({
+      president_candidate: actual_candidate,
+      is_special_election: is_special_election === true ? true : false,
+      match: found_match.id,
+    })
+    .returning();
+
+  const updated_match = await db
+    .update(match)
+    .set({
+      president: actual_candidate,
+      stage: stageEnum.enumValues[1],
+      substage: substageEnum.enumValues[1],
+      waiting_on: actual_candidate,
+    })
+    .where(eq(match.id, found_match.id))
+    .returning();
+  if (!next_election[0] || !updated_match[0]) {
+    throw new Error(
+      "Error in accessing new election or updated match in set_up_next_election method",
+    );
+  }
+
+  return next_election;
+}
+
 function get_next_president(
   current_president: string,
   alive_players: string[],
@@ -216,17 +267,24 @@ export async function victory_check(found_match: match_type) {
   if (!hitler) {
     throw new Error("Hitler doesn't exist");
   }
+  if (!found_match.liberal_laws) {
+    throw new Error("found_match.liberal_laws doesn't exist");
+  }
   const hitler_is_alive = found_match.alive_players?.includes(hitler);
-  if (hitler_is_alive === false) {
+  if (hitler_is_alive === false || found_match.liberal_laws > 6) {
     //liberals win
     const update_match = await db
       .update(match)
       .set({
         isOver: true,
+        stage: stageEnum.enumValues[4],
         result: found_match.liberal_faction_name ?? "Liberal" + " Victory",
+        waiting_on: "Game is over, we're waiting on nobody",
       })
       .where(eq(match.id, found_match.id))
       .returning();
+
+    return true;
   }
   if (
     (found_match.hitler === found_match.chancellor &&
@@ -239,11 +297,16 @@ export async function victory_check(found_match: match_type) {
       .update(match)
       .set({
         isOver: true,
+        stage: stageEnum.enumValues[4],
         result: found_match.fascist_faction_name ?? "Fascist" + " Victory",
+        waiting_on: "Game is over, we're waiting on nobody",
       })
       .where(eq(match.id, found_match.id))
       .returning();
+
+    return true;
   }
+  return false;
 }
 
 export async function eot_cleanup_step(found_match: match_type) {
@@ -265,6 +328,9 @@ export async function eot_cleanup_step(found_match: match_type) {
       .returning();
 
     const actual_updated_match = updated_match[0];
+    if (!actual_updated_match) {
+      throw new Error("Error in eot_cleanup_step");
+    }
 
     return actual_updated_match;
   }
@@ -584,6 +650,7 @@ export async function get_info_on_game(
 
   const state = {
     this_player: single_player[0],
+    open_source_intel: found_match.open_source_intel,
 
     is_present_in_match: is_present_in_match,
     chancellor_laws: chancellor_laws,
@@ -610,6 +677,7 @@ export async function get_info_on_game(
     president: found_match.president,
     chancellor: found_match.chancellor,
 
+    last_regular_president: found_match.last_regular_president,
     last_President: found_match.last_President,
     last_Chancellor: found_match.last_Chancellor,
 
@@ -666,6 +734,13 @@ export async function discard_policy(
     info.stage === stageEnum.enumValues[2] &&
     info.president === username
   ) {
+    if (!info.found_match_serverside) {
+      throw new Error("can't access info.found_match_serverside");
+    }
+    const eot_cleanup_step_1 = await eot_cleanup_step(
+      info.found_match_serverside,
+    );
+
     const policies = info.president_laws;
     if (!policies) {
       throw new Error("policies doesn't exist");
@@ -682,7 +757,7 @@ export async function discard_policy(
     }
     const new_discard = [
       ...info.found_match_serverside?.discard_pile,
-      ...removed_policy,
+      removed_policy,
     ];
 
     const new_policies = policies?.splice(index, 1);
@@ -694,6 +769,7 @@ export async function discard_policy(
         president_laws_pile: [],
         chancellor_laws_pile: new_policies,
         substage: substageEnum.enumValues[5],
+        waiting_on: info.chancellor,
       })
       .where(eq(match.id, info.id));
   }
@@ -723,8 +799,6 @@ export async function discard_policy(
       ...new_policies,
     ];
 
-    const fascist_laws_array = info.found_match_serverside.fascist_laws_array;
-
     if (picked_policy === "liberal") {
       const new_match = await db
         .update(match)
@@ -733,10 +807,19 @@ export async function discard_policy(
           president_laws_pile: [],
           chancellor_laws_pile: [],
           liberal_laws: info.found_match_serverside.liberal_laws + 1,
-          substage: substageEnum.enumValues[5],
         })
         .where(eq(match.id, info.id))
         .returning();
+
+      const actual_new_match = new_match[0];
+
+      if (!actual_new_match) {
+        throw new Error("can't access actual_new_match");
+      }
+      const game_is_over = await victory_check(actual_new_match);
+      if (game_is_over) {
+        await set_up_next_election(actual_new_match);
+      }
     }
 
     if (picked_policy === "fascist") {
@@ -751,12 +834,138 @@ export async function discard_policy(
         })
         .where(eq(match.id, info.id))
         .returning();
+      const actual_new_match = new_match[0];
+      if (!actual_new_match) {
+        throw new Error("can't access actual_new_match");
+      }
+
+      if (
+        actual_new_match.fascist_laws === 5 &&
+        actual_new_match.veto_power_unlocked === false
+      ) {
+        await db
+          .update(match)
+          .set({ veto_power_unlocked: true })
+          .where(eq(match.id, actual_new_match.id));
+      }
+
+      // const cleaned_up_game = await eot_cleanup_step(actual_new_match);
+      // if (!cleaned_up_game) {
+      //   throw new Error("cleaned_up_game is undefined");
+      // }
+
+      const results = is_next_power_special(actual_new_match);
+      if (results.isSpecial_law === false) {
+        const game_is_over = await victory_check(actual_new_match);
+        if (game_is_over === false) {
+          await set_up_next_election(actual_new_match);
+        }
+      } else if (
+        results.isSpecial_law === true &&
+        results.exact_law === "PeekNextThreePolicies"
+      ) {
+        if (!actual_new_match?.deck[0]) {
+          throw new Error("Can't access actual_new_match?.deck[0]");
+        }
+        if (!actual_new_match?.deck[1]) {
+          throw new Error("Can't access actual_new_match?.deck[1]");
+        }
+        if (!actual_new_match?.deck[2]) {
+          throw new Error("Can't access actual_new_match?.deck[2]");
+        }
+
+        const top_of_the_deck = [
+          actual_new_match?.deck[0],
+          actual_new_match?.deck[1],
+          actual_new_match?.deck[2],
+        ];
+        if (!top_of_the_deck) {
+          throw new Error("can't pull 3 cards from top_of_the_deck");
+        }
+        const top_three_card_intel =
+          "the 3 policies at the top are as follows : " +
+            actual_new_match?.deck[0] ===
+          "liberal"
+            ? actual_new_match.liberal_faction_name
+            : actual_new_match.fascist_faction_name +
+                  " policy " +
+                  " , " +
+                  actual_new_match?.deck[0] ===
+                "liberal"
+              ? actual_new_match.liberal_faction_name
+              : actual_new_match.fascist_faction_name +
+                    " policy " +
+                    " , " +
+                    actual_new_match?.deck[0] ===
+                  "liberal"
+                ? actual_new_match.liberal_faction_name
+                : actual_new_match.fascist_faction_name + " policy " + " , ";
+
+        const new_deck = actual_new_match?.deck.slice(3);
+
+        const president_player = actual_new_match.president;
+
+        const open_source_intel = actual_new_match.open_source_intel;
+        const nugget_of_intel =
+          actual_new_match.president_role_name +
+          president_player +
+          " has looked at the top 3 cards of the policy deck .";
+
+        const new_open_source_intel = [...open_source_intel, nugget_of_intel];
+
+        await db
+          .update(match)
+          .set({
+            open_source_intel: new_open_source_intel,
+          })
+          .where(eq(match.id, actual_new_match.id));
+
+        const president_player_object = await db.query.player.findFirst({
+          where: and(
+            eq(player.match, actual_new_match.id),
+            eq(player.username, president_player),
+          ),
+        });
+        if (!president_player_object?.intel) {
+          throw new Error("cannot access president_player_object?.intel");
+        }
+        const president_player_object_intel = president_player_object.intel;
+        const new_intel_array = [
+          ...president_player_object_intel,
+          top_three_card_intel,
+        ];
+        const updated_president_player_object = await db
+          .update(player)
+          .set({ intel: new_intel_array })
+          .where(
+            and(
+              eq(player.match, actual_new_match.id),
+              eq(player.username, president_player),
+            ),
+          )
+          .returning();
+        await set_up_next_election(actual_new_match);
+      } else if (
+        results.isSpecial_law === true &&
+        results.exact_law !== "PeekNextThreePolicies"
+      ) {
+        await db
+          .update(match)
+          .set({
+            executive_power_active: true,
+            executive_power: results.exact_law,
+            stage: stageEnum.enumValues[3],
+            substage: substageEnum.enumValues[6],
+            waiting_on: actual_new_match.president,
+          })
+          .where(eq(match.id, actual_new_match.id));
+      }
     }
   }
   return 0;
 }
 
-export function is_next_power_special(found_match: MatchWithPlayers) {
+export function is_next_power_special(found_match: match_type) {
   if (!found_match.fascist_laws) {
     throw new Error("Can't access found_match.fascist_laws");
   }
@@ -770,13 +979,191 @@ export function is_next_power_special(found_match: MatchWithPlayers) {
     throw new Error("can't access exact_law");
   }
   const isSpecial_law = exact_law === "None" ? false : true;
-
   const returns = { isSpecial_law: isSpecial_law, exact_law: exact_law };
 
   return returns;
 }
+export async function handle_veto(
+  match_id: string,
+  match_password: string,
+  username: string,
+  player_password: string,
+  voting_yes: boolean,
+) {
+  const info = await get_info_on_game(
+    match_id,
+    username,
+    match_password,
+    player_password,
+    true,
+  );
 
-export function handle_special_power() {
+  if (
+    username === info.found_match_serverside?.chancellor &&
+    info.found_match_serverside.substage === substageEnum.enumValues[5] &&
+    info.found_match_serverside.president_rejected_veto === false
+  ) {
+    const osint_nugget =
+      info.found_match_serverside.chancellor_role_name +
+      " " +
+      username +
+      " wishes to veto the proposed bill ";
+
+    const osint_intel_array = info.found_match_serverside.open_source_intel;
+
+    const new_osint_intel_array = [...osint_intel_array, osint_nugget];
+
+    const updated_match = await db
+      .update(match)
+      .set({
+        chancellor_has_activated_veto: true,
+        open_source_intel: osint_intel_array,
+      })
+      .where(eq(match.id, info.found_match_serverside.id));
+  }
+  return 0;
+}
+export async function handle_special_power(
+  found_match: MatchWithPlayers,
+  username: string,
+  target: string,
+) {
+  if (!found_match.id) {
+    throw new Error("can't access found_match.id in handle_special_power ");
+  }
+
+  if (!found_match.alive_players?.includes(target)) {
+    throw new Error("Target not present among the living, try looking in hell");
+  }
+
+  const power = found_match.executive_power;
+  const power_is_active = found_match.executive_power_active;
+  if (power && power_is_active && username === found_match.president) {
+    if (power === "InvestigatePlayer") {
+      const Investigated_Player = await db.query.player.findFirst({
+        where: and(
+          eq(player.match, found_match.id),
+          eq(player.username, target),
+        ),
+      });
+
+      const el_presidente = await db.query.player.findFirst({
+        where: and(
+          eq(player.match, found_match.id),
+          eq(player.username, username),
+        ),
+      });
+
+      if (!Investigated_Player) {
+        throw new Error("can't access Investigated_Player");
+      }
+      const is_fascist = Investigated_Player?.is_fascist;
+      const intel_nugget =
+        is_fascist === true
+          ? Investigated_Player.username +
+            " is a member of " +
+            found_match.fascist_faction_name +
+            " faction ."
+          : Investigated_Player.username +
+            " is a member of " +
+            found_match.liberal_faction_name +
+            " faction .";
+
+      const el_presidente_intel = el_presidente?.intel;
+      if (!el_presidente) {
+        throw new Error("can't access el_presidente");
+      }
+      if (!el_presidente_intel) {
+        throw new Error("can't access el_presidente_intel");
+      }
+
+      const new_el_presidente_intel = [...el_presidente_intel, intel_nugget];
+      const osint_nugget =
+        found_match.president_role_name +
+        " " +
+        username +
+        " investigated the faction loyalties of " +
+        target;
+
+      const osint_intel_array = found_match.open_source_intel;
+
+      if (!osint_intel_array) {
+        throw new Error(
+          " can't access  osint_intel_array for Investigated_Player executive power",
+        );
+      }
+      if (!new_el_presidente_intel) {
+        throw new Error(
+          " can't access  new_el_presidente_intel for Investigated_Player executive power",
+        );
+      }
+      const new_osint_intel_array = [...osint_intel_array, osint_nugget];
+
+      const updated_match = await db
+        .update(match)
+        .set({ open_source_intel: new_osint_intel_array })
+        .where(eq(match.id, found_match.id));
+      const updated_el_presidente = await db
+        .update(player)
+        .set({ intel: new_el_presidente_intel })
+        .where(
+          and(eq(player.match, found_match.id), eq(player.username, username)),
+        );
+    }
+  } else if (power === "Execution") {
+    const alive_players = found_match.alive_players;
+
+    const alive_players_after_murder = alive_players.filter(
+      (player) => player !== target,
+    );
+
+    const osint_nugget =
+      found_match.president_role_name + username + " executed " + target;
+
+    const osint_intel_array = found_match.open_source_intel;
+
+    if (!osint_intel_array) {
+      throw new Error(
+        " can't access  osint_intel_array for Investigated_Player executive power",
+      );
+    }
+
+    const new_osint_intel_array = [...osint_intel_array, osint_nugget];
+    await db
+      .update(match)
+      .set({
+        alive_players: alive_players_after_murder,
+        open_source_intel: new_osint_intel_array,
+      })
+      .where(eq(match.id, found_match.id));
+  } else if (power === "SpecialElection") {
+    const osint_nugget =
+      found_match.president_role_name +
+      username +
+      " declared a special election and nominated his successor: " +
+      target;
+
+    const osint_intel_array = found_match.open_source_intel;
+
+    if (!osint_intel_array) {
+      throw new Error(
+        " can't access  osint_intel_array for Investigated_Player executive power",
+      );
+    }
+
+    const new_osint_intel_array = [...osint_intel_array, osint_nugget];
+    const updated_match = await db
+      .update(match)
+      .set({ open_source_intel: new_osint_intel_array })
+      .where(eq(match.id, found_match.id));
+
+    await set_up_next_election(found_match, true, target);
+    return 0;
+  } else {
+    throw new Error("You went to the wrong neighborhood");
+  }
+  await set_up_next_election(found_match);
+
   return 0;
 }
 
@@ -808,17 +1195,56 @@ export async function tally_vote_results(
       if (!actual_updated_election) {
         throw Error("Error in updating election");
       }
+
+      const match_with_Deck = await db.query.match.findFirst({
+        where: eq(match.id, found_election.match),
+        columns: { id: true, deck: true, last_President: true },
+      });
+
+      if (!match_with_Deck?.deck[0]) {
+        throw new Error("Can't access match_with_Deck?.deck[0]");
+      }
+      if (!match_with_Deck?.deck[1]) {
+        throw new Error("Can't access match_with_Deck?.deck[0]");
+      }
+      if (!match_with_Deck?.deck[2]) {
+        throw new Error("Can't access match_with_Deck?.deck[0]");
+      }
+
+      const top_of_the_deck = [
+        match_with_Deck?.deck[0],
+        match_with_Deck?.deck[1],
+        match_with_Deck?.deck[2],
+      ];
+
+      if (!top_of_the_deck) {
+        throw new Error("can't pull 3 cards from top_of_the_deck");
+      }
+      const new_deck = match_with_Deck?.deck.slice(3);
       const updated_match = await db
         .update(match)
         .set({
           chancellor: actual_updated_election?.chancellor_candidate,
           last_Chancellor: actual_updated_election.chancellor_candidate,
           last_President: actual_updated_election.president_candidate,
+          last_regular_president: actual_updated_election.is_special_election
+            ? match_with_Deck.last_President
+            : actual_updated_election.president_candidate,
           stage: stageEnum.enumValues[2],
           substage: substageEnum.enumValues[4],
+          waiting_on: actual_updated_election.president_candidate,
           failed_elections: 0,
+          deck: new_deck,
+          president_laws_pile: top_of_the_deck,
         })
-        .where(eq(match.id, actual_updated_election.match));
+        .where(eq(match.id, actual_updated_election.match))
+        .returning();
+
+      if (!updated_match[0]) {
+        throw new Error("can't access updated_match[0]");
+      }
+
+      const eot_cleanup_step_1 = await eot_cleanup_step(updated_match[0]);
     } else if (
       yay_votes &&
       nay_votes &&
@@ -847,6 +1273,7 @@ export async function tally_vote_results(
       const updated_match = await db
         .update(match)
         .set({
+          waiting_on: next_president,
           president: next_president,
           chancellor: "",
           stage: stageEnum.enumValues[1],
@@ -858,6 +1285,9 @@ export async function tally_vote_results(
           last_President: commit_anarchy
             ? ""
             : found_election.match.last_President,
+          last_regular_president: commit_anarchy
+            ? ""
+            : found_election.match.last_regular_president,
         })
         .where(eq(match.id, actual_updated_election.id))
         .returning();
@@ -891,6 +1321,11 @@ export async function tally_vote_results(
             .returning();
         }
       }
+
+      if (!actual_updated_match) {
+        throw new Error("can't access actual_updated_match in order to");
+      }
+      await set_up_next_election(actual_updated_match);
 
       const cleanup = await eot_cleanup_step(found_election.match);
     }

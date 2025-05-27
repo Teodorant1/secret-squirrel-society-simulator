@@ -22,13 +22,13 @@ export const cronjob_Runs = createTable("cronjob_Runs", {
   runDate: timestamp("runDate", { withTimezone: true }).primaryKey().notNull(),
 });
 
-export const waiting_on_enum = pgEnum("player", [
-  "all",
-  "president",
-  "chancellor",
-  "names",
-  "game_over",
-]);
+// export const waiting_on_enum = pgEnum("player", [
+//   "all",
+//   "president",
+//   "chancellor",
+//   "names",
+//   "game_over",
+// ]);
 
 // Define enum values
 export const stageEnum = pgEnum("stage", [
@@ -60,6 +60,10 @@ export const match = createTable("match", {
     .notNull()
     .default(""),
   password: varchar("password", { length: 255 }),
+  open_source_intel: varchar("open_source_intel", { length: 3000 })
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
   alive_players: varchar("alive_players", { length: 3000 })
     .array()
     .notNull()
@@ -113,6 +117,13 @@ export const match = createTable("match", {
   president: varchar("president", { length: 2000 }).notNull().default(""),
   chancellor: varchar("chancellor", { length: 2000 }).notNull().default(""),
   veto_power_unlocked: boolean("veto_power_unlocked").default(false).notNull(),
+  chancellor_has_activated_veto: boolean("chancellor_has_activated_veto")
+    .default(false)
+    .notNull(),
+  president_rejected_veto: boolean("president_rejected_veto")
+    .default(false)
+    .notNull(),
+
   liberal_faction_name: varchar("liberal_faction_name", { length: 2000 })
     .notNull()
     .default("liberal"),
@@ -151,7 +162,12 @@ export const match = createTable("match", {
 
   stage: varchar("stage", { length: 2000 }).notNull().default("lobby"),
   substage: varchar("substage", { length: 2000 }).notNull().default("lobby"),
-  waiting_on: varchar("waiting_on", { length: 2000 }).notNull().default("All"),
+  waiting_on: varchar("waiting_on", { length: 2000 }).notNull().default("all"),
+
+  executive_power: varchar("executive_power", { length: 2000 }).default(""),
+  executive_power_active: boolean("executive_power_active")
+    .notNull()
+    .default(false),
 
   hitler: varchar("hitler", { length: 2000 }).notNull().default(""),
   isOver: boolean("isOver").notNull().default(false),
@@ -160,6 +176,9 @@ export const match = createTable("match", {
   scheduled_for_deletion: boolean("scheduled_for_deletion").default(false),
   has_started: boolean("has_started").default(false),
 
+  last_regular_president: varchar("last_regular_president", { length: 2000 })
+    .notNull()
+    .default(""),
   last_President: varchar("last_President", { length: 2000 })
     .notNull()
     .default(""),
@@ -188,6 +207,8 @@ export const election = createTable("election", {
     .default(sql`'{}'::text[]`),
 
   is_over: boolean("is_over").notNull().default(false),
+  is_special_election: boolean("is_special_election").notNull().default(false),
+
   passed: boolean("passed"),
 
   match: varchar("match", { length: 255 })

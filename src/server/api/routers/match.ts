@@ -49,7 +49,7 @@ export const MatchRouter = createTRPCRouter({
         }
 
         return {
-          election_result: election_result,
+          election_result: "election_result",
           error: false,
           error_description: null,
         };
@@ -235,7 +235,7 @@ export const MatchRouter = createTRPCRouter({
         );
 
         return {
-          game,
+          game: game,
           error: false,
           error_description: null,
         };
@@ -266,7 +266,7 @@ export const MatchRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const game = await join_game(
+        await join_game(
           input.match_id,
           ctx.session.user.username,
           input.password,
@@ -274,7 +274,7 @@ export const MatchRouter = createTRPCRouter({
         );
 
         return {
-          game,
+          game: "game",
           error: false,
           error_description: null,
         };
@@ -325,7 +325,7 @@ export const MatchRouter = createTRPCRouter({
       // ];
 
       return {
-        AvailableGames,
+        AvailableGames: AvailableGames,
         error: false,
         error_description: null,
       };
