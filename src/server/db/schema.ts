@@ -250,6 +250,7 @@ export const player = createTable("player", {
     .notNull()
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
+
   username: varchar("username", { length: 255 })
     .notNull()
     .references(() => actual_users.username, {
@@ -294,13 +295,13 @@ export const matchRelations = relations(match, ({ many }) => ({
 }));
 
 export const playerRelations = relations(player, ({ one }) => ({
-  match: one(match, {
+  match_struct: one(match, {
     fields: [player.match],
     references: [match.id],
   }),
 }));
 export const electionRelations = relations(election, ({ one, many }) => ({
-  match: one(match, {
+  match_struct: one(match, {
     fields: [election.match],
     references: [match.id],
   }),

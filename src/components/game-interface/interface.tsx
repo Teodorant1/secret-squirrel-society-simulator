@@ -486,14 +486,14 @@ export default function Game_Interface({
                       : "border-red-500/40 bg-red-800/10"
                   }`}
                 >
-                  <div className="flex justify-between font-mono text-sm">
-                    <span>
+                  <div className="flex-col justify-between font-mono text-sm">
+                    <span className="mx-2">
                       <strong>
                         {match_query.data?.game_info?.president_role_name}:
                       </strong>{" "}
                       {election.president_candidate}
                     </span>
-                    <span>
+                    <span className="mx-2">
                       <strong>
                         {match_query.data?.game_info?.chancellor_role_name}:
                       </strong>{" "}
@@ -501,11 +501,31 @@ export default function Game_Interface({
                     </span>
                     <span
                       className={
-                        election.passed ? "text-green-400" : "text-red-400"
+                        election.passed
+                          ? "mx-5 text-green-400"
+                          : "mx-5 text-red-400"
                       }
                     >
                       {election.passed ? "PASSED" : "REJECTED"}
                     </span>
+                    <div>Date:{election.created_at.toISOString()}</div>
+                    <div className="m-2 flex-wrap p-2">
+                      {election.votes.map((vote, index) => (
+                        <div
+                          key={index}
+                          className={`m-1 p-2 text-white ${
+                            vote.voting_yes
+                              ? ""
+                              : "border-red-600/40 bg-red-600/50"
+                          }`}
+                        >
+                          {vote.username} +{" "}
+                          {vote.voting_yes === true
+                            ? "VOTED FOR"
+                            : "VOTED AGAINST"}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </Card>
               ),
