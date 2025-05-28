@@ -89,10 +89,7 @@ export default function CustomizePage() {
   const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const matches = api.match.GetAvailableGames.useQuery(undefined, {
-    refetchIntervalInBackground: true,
-    refetchInterval: 10000,
-  });
+  const matches = api.match.GetAvailableGames.useQuery();
 
   // const [matches, setMatches] = useState<Match[]>([
   //   {

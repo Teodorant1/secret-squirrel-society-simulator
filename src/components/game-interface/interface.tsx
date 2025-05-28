@@ -18,6 +18,7 @@ import {
   Terminal,
   History,
   Vote,
+  Info,
 } from "lucide-react";
 import { GlitchText } from "@/components/effects/glitch-text";
 import { TerminalText } from "@/components/effects/terminal-text";
@@ -27,6 +28,8 @@ import {
   CanBeNominated_for_chancellor,
   notInArray,
 } from "@/random-functions/frontend/frontend1";
+import { match } from "assert";
+import { stageEnum, substageEnum } from "@/server/db/schema";
 
 // nomination , election , ?? potential anarchy , 1st law selection , 2nd law selection , optional_skip
 
@@ -42,14 +45,21 @@ export default function Game_Interface({
   match_id,
 }: Game_Interface_Props) {
   const { data: session } = useSession();
-
+  function show_ongoing_election() {
+    if (
+      match_query.data?.game_info?.substage === substageEnum.enumValues[2] &&
+      match_query.data.game_info.stage === stageEnum.enumValues[1] &&
+      match_query.data.game_info.ongoingElection?.chancellor_candidate
+    )
+      return false;
+  }
   function show_nominate_button(agent: string) {
     if (
       match_query.data?.game_info &&
       match_query.data.game_info.waiting_on === session?.user.username &&
       match_query.data.game_info.president === session?.user.username &&
-      match_query.data.game_info.stage === "election" &&
-      match_query.data.game_info.substage === "nominating" &&
+      match_query.data.game_info.stage === stageEnum.enumValues[1] &&
+      match_query.data.game_info.substage === substageEnum.enumValues[1] &&
       CanBeNominated_for_chancellor(agent, match_query.data.game_info)
     ) {
       return true;
@@ -271,6 +281,103 @@ export default function Game_Interface({
     return "";
   }
 
+  function am_i_alive() {
+    if (!session) {
+      return false;
+    }
+    if (
+      match_query.data?.game_info?.player_order.includes(session?.user.username)
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  function InfoBox() {
+    const gameInfo = match_query.data?.game_info;
+    if (!gameInfo) return null;
+
+    return (
+      <Card className="relative overflow-hidden border-blue-500/30 bg-black/50 p-6 backdrop-blur-sm">
+        {/* Scanline animation */}
+        <motion.div
+          className="absolute inset-0 h-1 w-full bg-blue-400/10"
+          animate={{ top: ["0%", "100%", "0%"] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+        />
+
+        <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold">
+          <Info className="h-5 w-5 text-blue-400" />
+          <GlitchText text={"GAME STATUS//"} className="font-mono" />
+          <motion.div
+            className="ml-2 h-1.5 w-1.5 rounded-full bg-blue-400"
+            animate={{ opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+        </h3>
+
+        <div className="space-y-2 font-mono text-sm text-blue-100">
+          <InfoLine
+            label={`${gameInfo.president_role_name}:`}
+            value={gameInfo.president}
+          />
+          <InfoLine
+            label={`${gameInfo.chancellor_role_name}:`}
+            value={gameInfo.chancellor}
+          />
+          <InfoLine
+            label={`Previous ${gameInfo.president_role_name}:`}
+            value={gameInfo.last_President}
+          />
+          <InfoLine
+            label={`Previous ${gameInfo.chancellor_role_name}:`}
+            value={gameInfo.last_Chancellor}
+          />
+          <InfoLine
+            label={`${gameInfo.liberal_faction_name} Laws:`}
+            value={gameInfo.liberal_laws_number}
+          />
+          <InfoLine
+            label={`${gameInfo.fascist_faction_name} Laws:`}
+            value={gameInfo.fascist_laws_number}
+          />
+          {gameInfo.veto_power_unlocked && (
+            <InfoLine
+              label={"Veto Power:"}
+              value="Unlocked"
+              className="text-red-500"
+            />
+          )}
+          <InfoLine
+            label={"Failed Elections:"}
+            value={gameInfo.failed_elections}
+          />
+          <InfoLine label={"Deck Size:"} value={gameInfo.decksize} />
+          <InfoLine label={"Discard Size:"} value={gameInfo.discard_size} />
+          <InfoLine label={"Stage:"} value={gameInfo.stage} />
+          <InfoLine label={"Substage:"} value={gameInfo.substage} />
+          <InfoLine label={"Waiting On:"} value={gameInfo.waiting_on} />
+        </div>
+      </Card>
+    );
+  }
+
+  type InfoLineProps = {
+    label: string;
+    value: string | number | null | undefined;
+    className?: string;
+  };
+
+  function InfoLine({ label, value, className = "" }: InfoLineProps) {
+    return (
+      <div
+        className={`flex items-center justify-between px-2 py-1 ${className}`}
+      >
+        <span className="text-blue-400">{label}</span>
+        <span className="text-blue-200">{value ?? "??"}</span>
+      </div>
+    );
+  }
   function VotingCard() {
     return (
       <Card className="relative overflow-hidden border-yellow-500/30 bg-black/50 p-6 backdrop-blur-sm">
@@ -759,10 +866,14 @@ export default function Game_Interface({
           transition={{ duration: 0.8 }}
           className="grid gap-6 md:grid-cols-2"
         >
+          {match_query.data && <InfoBox />}
           {match_query.data?.game_info?.player_order && <PlayersCard />}
           {match_query.data?.game_info && (
             <Intel_Card title={"INTELLIGENCE_REPORTS//"} />
           )}
+
+          {match_query.data && show_ongoing_election() && <VotingCard />}
+          {match_query.data && <PreviousElectionsCard />}
         </motion.div>
         {match_query.data?.game_info?.fascist_laws &&
           match_query.data?.game_info?.liberal_laws && (

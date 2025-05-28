@@ -34,6 +34,7 @@ const policies = [
   "fascist",
   "fascist",
   "fascist",
+
   "fascist",
   "fascist",
 ];
@@ -370,19 +371,23 @@ export async function start_game(
       if (!found_match) {
         throw new Error("Match not found.");
       }
-      if (found_match.has_started || found_match.isOver) {
-        throw new Error(
-          "It is impossible to start the match at this time, it has either already started and/or finished",
-        );
-      }
       const is_present_in_match = await Check_if_player_is_present_in_match(
         player_password,
         username,
         found_match,
       );
-      if (is_present_in_match?.is_alive === false) {
-        throw new Error("It is forbidden to start games from the afterlife");
+      if (
+        (found_match.has_started && is_present_in_match?.ispresent === false) ||
+        found_match.isOver
+      ) {
+        throw new Error(
+          "v1 It is impossible to start the match at this time, it has either already started and/or finished",
+        );
       }
+
+      // if (is_present_in_match?.is_alive === false) {
+      // throw new Error("It is forbidden to start games from the afterlife");
+      // }
       if (
         found_match.creator_owner !== username ||
         found_match.password !== match_password ||
@@ -649,6 +654,9 @@ export async function get_info_on_game(
       : null;
 
   const state = {
+    decksize: found_match.deck.length,
+    discard_size: found_match.discard_pile.length,
+
     this_player: single_player[0],
     open_source_intel: found_match.open_source_intel,
 
@@ -682,6 +690,9 @@ export async function get_info_on_game(
     last_Chancellor: found_match.last_Chancellor,
 
     veto_power_unlocked: found_match.veto_power_unlocked,
+    veto_session_over: found_match.veto_session_over,
+    chancellor_has_activated_veto: found_match.chancellor_has_activated_veto,
+    president_accepted_veto: found_match.president_accepted_veto,
     liberal_faction_name: found_match.liberal_faction_name,
     fascist_faction_name: found_match.fascist_faction_name,
     president_role_name: found_match.president_role_name,
@@ -1001,13 +1012,23 @@ export async function handle_veto(
   if (
     username === info.found_match_serverside?.chancellor &&
     info.found_match_serverside.substage === substageEnum.enumValues[5] &&
-    info.found_match_serverside.president_rejected_veto === false
+    info.found_match_serverside.president_accepted_veto === false
   ) {
+  } else if (
+    username === info.found_match_serverside?.president &&
+    info.found_match_serverside.substage === substageEnum.enumValues[5] &&
+    info.found_match_serverside.president_accepted_veto === false &&
+    info.found_match_serverside.chancellor_has_activated_veto === true
+  ) {
+    const outcome = voting_yes === true ? "accepted" : "rejected";
+
     const osint_nugget =
-      info.found_match_serverside.chancellor_role_name +
+      info.found_match_serverside.president_role_name +
       " " +
       username +
-      " wishes to veto the proposed bill ";
+      " has " +
+      outcome +
+      " the veto proposal ";
 
     const osint_intel_array = info.found_match_serverside.open_source_intel;
 
@@ -1016,16 +1037,79 @@ export async function handle_veto(
     const updated_match = await db
       .update(match)
       .set({
-        chancellor_has_activated_veto: true,
+        president_accepted_veto: voting_yes === true ? true : false,
         open_source_intel: new_osint_intel_array,
+        veto_session_over: true,
+        // failed_elections: info.found_match_serverside.failed_elections + 1,
       })
-      .where(eq(match.id, info.found_match_serverside.id));
-  } else if (
-    username === info.found_match_serverside?.president &&
-    info.found_match_serverside.substage === substageEnum.enumValues[5] &&
-    info.found_match_serverside.president_rejected_veto === false
-  )
-    return 0;
+      .where(eq(match.id, info.found_match_serverside.id))
+      .returning();
+
+    const actual_updated_match = updated_match[0];
+    if (!actual_updated_match) {
+      throw new Error("can't access actual_updated_match in handle_veto() ");
+    }
+    if (voting_yes === true) {
+      const failed_elections = actual_updated_match.failed_elections + 1;
+      const commit_anarchy = failed_elections === 3 ? true : false;
+      const next_president = get_next_president(
+        actual_updated_match.last_regular_president,
+        actual_updated_match.alive_players,
+      );
+      const updated_match = await db
+        .update(match)
+        .set({
+          waiting_on: next_president,
+          president: next_president,
+          chancellor: "",
+          stage: stageEnum.enumValues[1],
+          substage: substageEnum.enumValues[1],
+          failed_elections: commit_anarchy ? 0 : 3,
+          last_Chancellor: commit_anarchy
+            ? ""
+            : actual_updated_match.last_Chancellor,
+          last_President: commit_anarchy
+            ? ""
+            : actual_updated_match.last_President,
+          last_regular_president: commit_anarchy
+            ? ""
+            : actual_updated_match.last_regular_president,
+        })
+        .where(eq(match.id, actual_updated_match.id))
+        .returning();
+
+      // const actual_updated_match = updated_match[0];
+
+      if (commit_anarchy) {
+        const deck = actual_updated_match.deck;
+
+        const first_policy = deck.shift();
+
+        const is_liberal = first_policy === "liberal" ? true : false;
+
+        if (is_liberal && actual_updated_match) {
+          const updated_match = await db
+            .update(match)
+            .set({
+              liberal_laws: actual_updated_match.liberal_laws + 1,
+              deck: deck,
+            })
+            .where(eq(match.id, actual_updated_match.id))
+            .returning();
+        } else if (!is_liberal && actual_updated_match) {
+          const updated_match = await db
+            .update(match)
+            .set({
+              fascist_laws: actual_updated_match.fascist_laws + 1,
+              deck: deck,
+            })
+            .where(eq(match.id, actual_updated_match.id))
+            .returning();
+        }
+      }
+    }
+  }
+  return 0;
 }
 export async function handle_special_power(
   found_match: MatchWithPlayers,
@@ -1301,7 +1385,7 @@ export async function tally_vote_results(
       if (commit_anarchy) {
         const deck = found_election.match.deck;
 
-        const first_policy = found_election.match.deck.shift();
+        const first_policy = deck.shift();
 
         const is_liberal = first_policy === "liberal" ? true : false;
 
@@ -1521,14 +1605,20 @@ export async function join_game(
       singular_new_player: isPresent.player,
     };
   }
-  if (found_match.has_started || found_match.isOver) {
+
+  console.error("isPresent", isPresent);
+
+  if (
+    (found_match.has_started && isPresent?.ispresent === false) ||
+    found_match.isOver
+  ) {
     throw new Error(
       "It is impossible to join the match at this time, it has either already started and/or finished",
     );
   }
-  if (isPresent?.is_alive === false) {
-    throw new Error("It is forbidden to start games from the afterlife");
-  }
+  // if (isPresent?.is_alive === false) {
+  //   throw new Error("It is forbidden to start games from the afterlife");
+  // }
 
   const hashed_password = await hashPassword(password.trim());
 

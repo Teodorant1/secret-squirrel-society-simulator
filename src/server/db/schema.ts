@@ -117,10 +117,11 @@ export const match = createTable("match", {
   president: varchar("president", { length: 2000 }).notNull().default(""),
   chancellor: varchar("chancellor", { length: 2000 }).notNull().default(""),
   veto_power_unlocked: boolean("veto_power_unlocked").default(false).notNull(),
+  veto_session_over: boolean("veto_session_over").default(false).notNull(),
   chancellor_has_activated_veto: boolean("chancellor_has_activated_veto")
     .default(false)
     .notNull(),
-  president_rejected_veto: boolean("president_rejected_veto")
+  president_accepted_veto: boolean("president_accepted_veto")
     .default(false)
     .notNull(),
 
