@@ -1017,11 +1017,15 @@ export async function handle_veto(
       .update(match)
       .set({
         chancellor_has_activated_veto: true,
-        open_source_intel: osint_intel_array,
+        open_source_intel: new_osint_intel_array,
       })
       .where(eq(match.id, info.found_match_serverside.id));
-  }
-  return 0;
+  } else if (
+    username === info.found_match_serverside?.president &&
+    info.found_match_serverside.substage === substageEnum.enumValues[5] &&
+    info.found_match_serverside.president_rejected_veto === false
+  )
+    return 0;
 }
 export async function handle_special_power(
   found_match: MatchWithPlayers,

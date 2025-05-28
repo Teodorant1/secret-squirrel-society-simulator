@@ -225,7 +225,7 @@ export default function CustomizePage() {
           "> Join Game action successful. Welcome to the network.",
         ]);
         sethasStartedGame(true);
-        setmatch_id(data.game!.found_match.id);
+        setmatch_id(data.game);
       } else {
         setIsError(true);
         setErrorText(

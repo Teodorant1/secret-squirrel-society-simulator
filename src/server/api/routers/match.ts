@@ -266,7 +266,7 @@ export const MatchRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        await join_game(
+        const game = await join_game(
           input.match_id,
           ctx.session.user.username,
           input.password,
@@ -274,7 +274,7 @@ export const MatchRouter = createTRPCRouter({
         );
 
         return {
-          game: "game",
+          game: game.found_match.id,
           error: false,
           error_description: null,
         };
