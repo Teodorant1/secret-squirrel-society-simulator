@@ -46,14 +46,36 @@ export default function Game_Interface({
 }: Game_Interface_Props) {
   const { data: session } = useSession();
   function show_ongoing_election() {
+    if (!session) {
+      return false;
+    }
+
+    // if (match_query.data?.game_info?.ongoingElection) {
+    //   console.log(
+    //     "match_query.data.game_info.ongoingElection.voting_list.includes( session?.user.username, )",
+    //     match_query.data.game_info.ongoingElection.voting_list.includes(
+    //       session?.user.username,
+    //     ),
+    //   );
+
+    //   console.log(
+    //     match_query.data.game_info.ongoingElection?.chancellor_candidate,
+    //   );
+    // }
     if (
       match_query.data?.game_info?.substage === substageEnum.enumValues[2] &&
       match_query.data.game_info.stage === stageEnum.enumValues[1] &&
-      match_query.data.game_info.ongoingElection?.chancellor_candidate
-    )
-      return false;
+      match_query.data.game_info.ongoingElection?.chancellor_candidate &&
+      match_query.data.game_info.ongoingElection.voting_list.includes(
+        session?.user.username,
+      )
+    ) {
+      return true;
+    }
+    return false;
   }
   function show_nominate_button(agent: string) {
+    // console.log("show_nominate_button", match_query.data);
     if (
       match_query.data?.game_info &&
       match_query.data.game_info.waiting_on === session?.user.username &&
@@ -71,7 +93,8 @@ export default function Game_Interface({
     if (
       match_query.data &&
       match_query.data.game_info?.has_started === false &&
-      match_query.data.game_info.creator_owner === session?.user.username
+      match_query.data.game_info.creator_owner === session?.user.username &&
+      match_query.data.game_info.player_size > 4
     ) {
       return true;
     }
@@ -90,6 +113,12 @@ export default function Game_Interface({
     //   refetchInterval: 10000,
     // },
   );
+
+  async function refetch_n_show() {
+    await match_query.refetch();
+
+    console.log(match_query.data);
+  }
 
   //   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [terminalLines, setTerminalLines] = useState<string[]>([]);
@@ -257,7 +286,8 @@ export default function Game_Interface({
       president_candidate:
         match_query.data?.game_info?.ongoingElection?.president_candidate ?? "",
       chancellor_candidate:
-        match_query.data?.game_info?.ongoingElection?.president_candidate ?? "",
+        match_query.data?.game_info?.ongoingElection?.chancellor_candidate ??
+        "",
       voting_yes: voting_yes,
       match_password: match_password,
       player_password: playerPassword,
@@ -317,10 +347,13 @@ export default function Game_Interface({
         </h3>
 
         <div className="space-y-2 font-mono text-sm text-blue-100">
+          <InfoLine label={`MATCH_ID:`} value={gameInfo.id} />
           <InfoLine
             label={`${gameInfo.president_role_name}:`}
             value={gameInfo.president}
           />
+
+          <InfoLine label={`Players in Lobby:`} value={gameInfo.player_size} />
           <InfoLine
             label={`${gameInfo.chancellor_role_name}:`}
             value={gameInfo.chancellor}
@@ -393,9 +426,10 @@ export default function Game_Interface({
         <div className="mb-4 font-mono text-sm text-white">
           Do you approve the government of{" "}
           <span className="text-blue-400">
-            {match_query.data?.game_info?.ongoingElection?.president_candidate}
+            {match_query.data?.game_info?.ongoingElection?.president_candidate}{" "}
+            for {" " + match_query.data?.game_info?.president_role_name + " "}{" "}
+            and{" "}
           </span>{" "}
-          for {" " + match_query.data?.game_info?.president_role_name + " "} and{" "}
           <span className="text-purple-400">
             {match_query.data?.game_info?.ongoingElection?.chancellor_candidate}
             {" for "} {match_query.data?.game_info?.chancellor_role_name + " "}
@@ -509,8 +543,7 @@ export default function Game_Interface({
         </h3>
         <div className="space-y-2">
           {match_query.data?.game_info?.has_started !== true ? (
-            "Game hasn't started yet!" +
-            match_query.data?.game_info?.has_started?.valueOf()
+            "Game hasn't started yet!"
           ) : (
             <div>
               {match_query.data?.game_info?.original_players_array &&
@@ -826,7 +859,13 @@ export default function Game_Interface({
             typingSpeed={20}
           />
         </motion.div>
-
+        <button
+          onClick={() => {
+            void refetch_n_show();
+          }}
+        >
+          REFETCH AND PRINT
+        </button>
         {ShowStartButton() && (
           <motion.div
             className="flex flex-col justify-center gap-4 sm:flex-row"

@@ -40,7 +40,9 @@ export const MatchRouter = createTRPCRouter({
         );
 
         const voting_list = election_result.updated_voting_list;
-
+        if (!voting_list) {
+          throw Error("Can't access tally_vote_results voting_list");
+        }
         if (voting_list?.length === 0) {
           await tally_vote_results(
             election_result.election_id,
