@@ -793,7 +793,7 @@ export default function Game_Interface({
     title = "DISCARD//POLICY",
   }: DiscardPolicyCard_boxProps) {
     if (!policies || policies.length !== 3) {
-      return null;
+      return <>NO POLICIES</>;
     }
 
     return (
@@ -1223,7 +1223,7 @@ export default function Game_Interface({
                   match_query.data.game_info?.president_role_name +
                   " legislation Corner "
                 }
-                policies={match_query.data.game_info?.chancellor_laws ?? []}
+                policies={match_query.data.game_info?.president_laws ?? []}
                 onDiscard={handle_discard_policy}
               />
             )}
