@@ -748,6 +748,9 @@ export async function get_info_on_game(
     scheduled_for_deletion: found_match.scheduled_for_deletion,
     has_started: found_match.has_started,
 
+    executive_power_enabled: found_match.executive_power_active,
+    executive_power: found_match.executive_power,
+
     is_server_side: is_server_side,
     found_match_serverside: is_server_side ? found_match : null,
   };
@@ -1148,10 +1151,24 @@ export async function handle_veto(
   return 0;
 }
 export async function handle_special_power(
-  found_match: MatchWithPlayers,
+  found_match_id: string,
   username: string,
   target: string,
+  player_password: string,
+  match_password: string,
 ) {
+  const info = await get_info_on_game(
+    found_match_id,
+    username,
+    match_password,
+    player_password,
+    true,
+  );
+
+  const found_match = info.found_match_serverside;
+  if (!found_match) {
+    throw new Error("");
+  }
   if (!found_match.id) {
     throw new Error("can't access found_match.id in handle_special_power ");
   }

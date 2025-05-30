@@ -19,6 +19,8 @@ import {
   History,
   Vote,
   Info,
+  ShieldBan,
+  FileMinus2,
 } from "lucide-react";
 import { GlitchText } from "@/components/effects/glitch-text";
 import { TerminalText } from "@/components/effects/terminal-text";
@@ -28,7 +30,6 @@ import {
   CanBeNominated_for_chancellor,
   notInArray,
 } from "@/random-functions/frontend/frontend1";
-import { match } from "assert";
 import { stageEnum, substageEnum } from "@/server/db/schema";
 
 // nomination , election , ?? potential anarchy , 1st law selection , 2nd law selection , optional_skip
@@ -74,6 +75,33 @@ export default function Game_Interface({
     }
     return false;
   }
+  function show_executive_button() {
+    if (match_query.data?.game_info?.executive_power_enabled) {
+      return true;
+    }
+    return false;
+  }
+  type ExecutivePowerButtonProps = {
+    player: string;
+    executivePower: string;
+    onUsePower: (targetPlayer: string) => void;
+  };
+
+  function ExecutivePowerButton({
+    player,
+    executivePower,
+    onUsePower,
+  }: ExecutivePowerButtonProps) {
+    return (
+      <button
+        onClick={() => onUsePower(player)}
+        className="m-2 bg-blue-700 p-2 text-white"
+      >
+        Power: {executivePower} {" --> "} {player}
+      </button>
+    );
+  }
+
   function show_nominate_button(agent: string) {
     // console.log("show_nominate_button", match_query.data);
     if (
@@ -167,6 +195,122 @@ export default function Game_Interface({
       clearInterval(statusInterval);
     };
   }, []);
+
+  const handle_veto = api.match.handle_veto.useMutation({
+    onSuccess: async (data) => {
+      setIsLoading(false);
+      if (data.error === false) {
+        setTerminalLines((prev) => [
+          ...prev,
+          "> handle_vetoaction successful. Welcome to the network.",
+        ]);
+        await match_query.refetch();
+      } else {
+        setIsError(true);
+        setErrorText(
+          data.error_description ?? "An unknown error has occurred.",
+        );
+        setTerminalLines((prev) => [
+          ...prev,
+          `> ERROR: ${data.error_description}`,
+        ]);
+      }
+    },
+  });
+
+  const handle_handle_veto = (voting_yes: boolean) => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    setIsError(null);
+    setTerminalLines((prev) => [
+      ...prev,
+      `> Processing handle_start_game for ${"username"}...`,
+    ]);
+    handle_veto.mutate({
+      match_id: match_id ?? "",
+      match_password: playerPassword,
+      player_password: match_password,
+      voting_yes: false,
+    });
+  };
+  const handle_special_power = api.match.handle_special_power.useMutation({
+    onSuccess: async (data) => {
+      setIsLoading(false);
+      if (data.error === false) {
+        setTerminalLines((prev) => [
+          ...prev,
+          "> handle_special_poweraction successful. Welcome to the network.",
+        ]);
+        await match_query.refetch();
+      } else {
+        setIsError(true);
+        setErrorText(
+          data.error_description ?? "An unknown error has occurred.",
+        );
+        setTerminalLines((prev) => [
+          ...prev,
+          `> ERROR: ${data.error_description}`,
+        ]);
+      }
+    },
+  });
+
+  const handle_handle_special_power = (target: string) => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    setIsError(null);
+    setTerminalLines((prev) => [
+      ...prev,
+      `> Processing handle_start_game for ${"username"}...`,
+    ]);
+    handle_special_power.mutate({
+      match_id: match_id ?? "",
+      match_password: playerPassword,
+      player_password: match_password,
+      target: target,
+    });
+  };
+
+  const discard_policy = api.match.discard_policy.useMutation({
+    onSuccess: async (data) => {
+      setIsLoading(false);
+      if (data.error === false) {
+        setTerminalLines((prev) => [
+          ...prev,
+          "> discard_policyaction successful. Welcome to the network.",
+        ]);
+        await match_query.refetch();
+      } else {
+        setIsError(true);
+        setErrorText(
+          data.error_description ?? "An unknown error has occurred.",
+        );
+        setTerminalLines((prev) => [
+          ...prev,
+          `> ERROR: ${data.error_description}`,
+        ]);
+      }
+    },
+  });
+
+  const handle_discard_policy = (index: number) => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    setIsError(null);
+    setTerminalLines((prev) => [
+      ...prev,
+      `> Processing handle_start_game for ${"username"}...`,
+    ]);
+    discard_policy.mutate({
+      match_id: match_id ?? "",
+      match_password: playerPassword,
+      player_password: match_password,
+      index: index,
+    });
+  };
 
   const start_game = api.match.start_game.useMutation({
     onSuccess: async (data) => {
@@ -599,6 +743,17 @@ export default function Game_Interface({
                                     ELIMINATED
                                   </div>
                                 )}
+                              {show_executive_button() && (
+                                <ExecutivePowerButton
+                                  player={agent}
+                                  executivePower={
+                                    match_query.data.game_info
+                                      ?.executive_power ??
+                                    "error can't figure out executive power name"
+                                  }
+                                  onUsePower={handle_handle_special_power}
+                                />
+                              )}
                               {show_nominate_button(agent) && (
                                 <button
                                   onClick={() => {
@@ -621,6 +776,140 @@ export default function Game_Interface({
           )}
         </div>
       </Card>
+    );
+  }
+
+  type DiscardPolicyCard_boxProps = {
+    policies: string[];
+    onDiscard: (index: number) => void;
+    className?: string; // Optional class override
+    title?: string; // Optional override for heading
+  };
+
+  function DiscardPolicyCard_box({
+    policies,
+    onDiscard,
+    className = "",
+    title = "DISCARD//POLICY",
+  }: DiscardPolicyCard_boxProps) {
+    if (!policies || policies.length !== 3) {
+      return null;
+    }
+
+    return (
+      <Card
+        className={`relative overflow-hidden border-red-500/30 bg-black/50 p-6 backdrop-blur-sm ${className}`}
+      >
+        {/* Scan line animation */}
+        <motion.div
+          className="absolute inset-0 h-1 w-full bg-red-400/10"
+          animate={{
+            top: ["0%", "100%", "0%"],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: "linear",
+          }}
+        />
+
+        <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold text-red-300">
+          <FileMinus2 className="h-5 w-5 text-red-400" />
+          <GlitchText text={title} className="font-mono" />
+        </h3>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {policies.map((policy, index) => (
+            <motion.div
+              key={index}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              className="group relative"
+            >
+              <Card
+                onClick={() => onDiscard(index)}
+                className={`cursor-pointer border ${
+                  policy === "fascist"
+                    ? "border-red-600 bg-red-800/40"
+                    : "border-blue-500 bg-blue-800/30"
+                } p-4 transition-all duration-300 ease-in-out hover:shadow-lg`}
+              >
+                <div className="flex flex-col items-center space-y-2">
+                  <ShieldBan
+                    className={`h-8 w-8 ${
+                      policy === "fascist" ? "text-red-300" : "text-blue-300"
+                    }`}
+                  />
+                  <span
+                    className={`font-mono text-lg ${
+                      policy === "fascist" ? "text-red-100" : "text-blue-100"
+                    }`}
+                  >
+                    {policy === "liberal"
+                      ? match_query.data?.game_info?.liberal_faction_name +
+                        " policy "
+                      : match_query.data?.game_info?.fascist_faction_name +
+                        " policy "}
+                  </span>
+                  <span className="text-xs text-white/50 group-hover:text-white/80">
+                    {match_query.data?.game_info?.chancellor ===
+                    session?.user.username
+                      ? "Click to pass"
+                      : "Click to discard"}
+                  </span>
+                </div>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+        <div>
+          <Veto_buttons />
+        </div>
+      </Card>
+    );
+  }
+
+  function should_show_veto_button() {
+    if (
+      session?.user.username === match_query.data?.game_info?.chancellor &&
+      match_query.data?.game_info?.veto_power_unlocked === true &&
+      match_query.data.game_info.chancellor_has_activated_veto === false
+    ) {
+      return true;
+    }
+
+    if (
+      session?.user.username === match_query.data?.game_info?.president &&
+      match_query.data?.game_info?.veto_power_unlocked === true &&
+      match_query.data.game_info.chancellor_has_activated_veto === true
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  function Veto_buttons() {
+    return (
+      <>
+        <button
+          onClick={() => {
+            handle_handle_veto(true);
+          }}
+          className="m-3 bg-blue-700 p-3"
+        >
+          {" "}
+          VETO THE RESOLUTION{" "}
+        </button>{" "}
+        <button
+          onClick={() => {
+            handle_handle_veto(false);
+          }}
+          className="m-3 bg-blue-700 p-3"
+        >
+          DON{"'"}T VETO THE RESOLUTION{" "}
+        </button>
+      </>
     );
   }
 
@@ -926,6 +1215,30 @@ export default function Game_Interface({
           className="grid gap-6 md:grid-cols-2"
         >
           {match_query.data && <InfoBox />}
+          {match_query.data &&
+            match_query.data.game_info?.president ===
+              session?.user.username && (
+              <DiscardPolicyCard_box
+                title={
+                  match_query.data.game_info?.president_role_name +
+                  " legislation Corner "
+                }
+                policies={match_query.data.game_info?.chancellor_laws ?? []}
+                onDiscard={handle_discard_policy}
+              />
+            )}
+          {match_query.data &&
+            match_query.data.game_info?.chancellor ===
+              session?.user.username && (
+              <DiscardPolicyCard_box
+                title={
+                  match_query.data.game_info?.chancellor_role_name +
+                  " legislation Corner "
+                }
+                policies={match_query.data.game_info?.chancellor_laws ?? []}
+                onDiscard={handle_discard_policy}
+              />
+            )}
           {match_query.data?.game_info?.player_order && <PlayersCard />}
           {match_query.data?.game_info && (
             <Intel_Card title={"INTELLIGENCE_REPORTS//"} />

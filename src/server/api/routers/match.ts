@@ -10,10 +10,142 @@ import {
   join_game,
   create_game,
   vote_in_election,
+  discard_policy,
+  handle_special_power,
+  handle_veto,
 } from "@/random-functions/backend/backend1";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
 export const MatchRouter = createTRPCRouter({
+  discard_policy: protectedProcedure
+    .input(
+      z.object({
+        match_id: z.string(),
+        match_password: z.string(),
+        player_password: z.string(),
+        index: z.number(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // const game = await start_game(input.match_id, input.player_id);
+
+        const discard_policy_result = await discard_policy(
+          input.match_id,
+          ctx.session.user.username,
+          input.match_password,
+          input.player_password,
+          input.index,
+        );
+
+        return {
+          discard_policy_result: discard_policy_result,
+          error: false,
+          error_description: null,
+        };
+      } catch (error) {
+        console.error("Error in discard_policy mutation:", error);
+        if (error instanceof Error) {
+          console.log(error.message);
+          return {
+            error: true,
+            error_description: error.message,
+            discard_policy_result: null,
+          };
+        }
+        return {
+          error: true,
+          error_description: "Something went wrong. Please try again.",
+          discard_policy_result: null,
+        };
+      }
+    }),
+  handle_special_power: protectedProcedure
+    .input(
+      z.object({
+        match_id: z.string(),
+        match_password: z.string(),
+        player_password: z.string(),
+        target: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // const game = await start_game(input.match_id, input.player_id);
+
+        const handled_special_power = await handle_special_power(
+          input.match_id,
+          ctx.session.user.username,
+          input.target,
+          input.player_password,
+          input.match_password,
+        );
+
+        return {
+          handled_special_power: handled_special_power,
+          error: false,
+          error_description: null,
+        };
+      } catch (error) {
+        console.error("Error in handle_special_power mutation:", error);
+        if (error instanceof Error) {
+          console.log(error.message);
+          return {
+            error: true,
+            error_description: error.message,
+            handled_special_power: null,
+          };
+        }
+        return {
+          error: true,
+          error_description: "Something went wrong. Please try again.",
+          handled_special_power: null,
+        };
+      }
+    }),
+  handle_veto: protectedProcedure
+    .input(
+      z.object({
+        match_id: z.string(),
+        match_password: z.string(),
+        player_password: z.string(),
+        voting_yes: z.boolean(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // const game = await start_game(input.match_id, input.player_id);
+
+        const veto_result = await handle_veto(
+          input.match_id,
+          input.match_password,
+          ctx.session.user.username,
+          input.player_password,
+          input.voting_yes,
+        );
+
+        return {
+          veto_result: veto_result,
+          error: false,
+          error_description: null,
+        };
+      } catch (error) {
+        console.error("Error in handle_veto mutation:", error);
+        if (error instanceof Error) {
+          console.log(error.message);
+          return {
+            error: true,
+            error_description: error.message,
+            veto_result: null,
+          };
+        }
+        return {
+          error: true,
+          error_description: "Something went wrong. Please try again.",
+          veto_result: null,
+        };
+      }
+    }),
   vote_in_elections: protectedProcedure
     .input(
       z.object({
