@@ -787,15 +787,20 @@ export async function discard_policy(
     if (!info.found_match_serverside) {
       throw new Error("can't access info.found_match_serverside");
     }
-    const eot_cleanup_step_1 = await eot_cleanup_step(
-      info.found_match_serverside,
-    );
+    // const eot_cleanup_step_1 = await eot_cleanup_step(
+    //   info.found_match_serverside,
+    // );
 
     const policies = info.president_laws;
     if (!policies) {
       throw new Error("policies doesn't exist");
     }
+
+    console.error("discard_policy FUNCTION , president part");
+    console.log("policies:", policies);
+
     const removed_policy = policies[index];
+    console.log("removed_policy:", removed_policy);
 
     if (!removed_policy) {
       throw new Error("removed_policy doesn't exist");
@@ -809,31 +814,37 @@ export async function discard_policy(
       ...info.found_match_serverside?.discard_pile,
       removed_policy,
     ];
+    console.log("new_discard:", new_discard);
 
-    const new_policies = policies?.splice(index, 1);
+    const removed = policies?.splice(index, 1);
+    console.log("removed:", removed);
 
     await db
       .update(match)
       .set({
         discard_pile: new_discard,
         president_laws_pile: [],
-        chancellor_laws_pile: new_policies,
+        chancellor_laws_pile: policies,
         substage: substageEnum.enumValues[5],
         waiting_on: info.chancellor,
       })
       .where(eq(match.id, info.id));
-  }
-
-  if (
+  } else if (
     info.substage === substageEnum.enumValues[5] &&
     info.stage === stageEnum.enumValues[2] &&
     info.chancellor === username
   ) {
+    console.error("discard_policy FUNCTION , chancellor part");
+
     const policies = info.chancellor_laws;
     if (!policies) {
       throw new Error("policies doesn't exist");
     }
+
+    console.log("policies:", policies);
+
     const picked_policy = policies[index];
+    console.log("picked_policy:", picked_policy);
 
     if (!picked_policy) {
       throw new Error("picked_policy doesn't exist");
@@ -843,11 +854,14 @@ export async function discard_policy(
         "info.found_match_serverside?.discard_pile doesn't exist",
       );
     }
-    const new_policies = policies?.splice(index, 1);
+    policies?.splice(index, 1);
+
     const new_discard = [
       ...info.found_match_serverside?.discard_pile,
-      ...new_policies,
+      ...policies,
     ];
+
+    console.log("new_discard:", new_discard);
 
     if (picked_policy === "liberal") {
       const new_match = await db
@@ -867,7 +881,7 @@ export async function discard_policy(
         throw new Error("can't access actual_new_match");
       }
       const game_is_over = await victory_check(actual_new_match);
-      if (game_is_over) {
+      if (game_is_over === false) {
         await set_up_next_election(actual_new_match);
       }
     }
@@ -1016,7 +1030,7 @@ export async function discard_policy(
 }
 
 export function is_next_power_special(found_match: match_type) {
-  if (!found_match.fascist_laws) {
+  if (found_match.fascist_laws === undefined) {
     throw new Error("Can't access found_match.fascist_laws");
   }
   const number_of_fascist_laws = found_match.fascist_laws;
@@ -1270,13 +1284,26 @@ export async function handle_special_power(
     }
 
     const new_osint_intel_array = [...osint_intel_array, osint_nugget];
-    await db
+    const updated_execution_match = await db
       .update(match)
       .set({
         alive_players: alive_players_after_murder,
         open_source_intel: new_osint_intel_array,
       })
-      .where(eq(match.id, found_match.id));
+      .where(eq(match.id, found_match.id))
+      .returning();
+
+    const actual_updated_execution_match = updated_execution_match[0];
+    if (!actual_updated_execution_match) {
+      throw new Error(
+        "Can't access actual_updated_execution_match in execution submethod ",
+      );
+    }
+
+    const game_is_over = await victory_check(actual_updated_execution_match);
+    if (game_is_over === false) {
+      await set_up_next_election(actual_updated_execution_match);
+    }
   } else if (power === "SpecialElection") {
     const osint_nugget =
       found_match.president_role_name +

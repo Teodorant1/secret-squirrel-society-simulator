@@ -31,6 +31,7 @@ import {
   notInArray,
 } from "@/random-functions/frontend/frontend1";
 import { stageEnum, substageEnum } from "@/server/db/schema";
+import { HackerError } from "../hacker-error";
 
 // nomination , election , ?? potential anarchy , 1st law selection , 2nd law selection , optional_skip
 
@@ -297,6 +298,8 @@ export default function Game_Interface({
 
   const handle_discard_policy = (index: number) => {
     if (isLoading) return;
+
+    console.log("executing handle_discard_policy");
 
     setIsLoading(true);
     setIsError(null);
@@ -792,7 +795,7 @@ export default function Game_Interface({
     className = "",
     title = "DISCARD//POLICY",
   }: DiscardPolicyCard_boxProps) {
-    if (!policies || policies.length !== 3) {
+    if (!policies) {
       return <>NO POLICIES</>;
     }
 
@@ -862,9 +865,7 @@ export default function Game_Interface({
             </motion.div>
           ))}
         </div>
-        <div>
-          <Veto_buttons />
-        </div>
+        <div>{should_show_veto_button() && <Veto_buttons />}</div>
       </Card>
     );
   }
@@ -970,104 +971,6 @@ export default function Game_Interface({
       </Card>
     );
   }
-  function SurveillanceCard({
-    title,
-    data,
-    type,
-  }: {
-    title: string;
-    data: any[];
-    type: "players" | "intel";
-  }) {
-    return (
-      <Card className="relative overflow-hidden border-blue-500/30 bg-black/50 p-6 backdrop-blur-sm">
-        {/* Scan line animation */}
-        <motion.div
-          className="absolute inset-0 h-1 w-full bg-blue-400/10"
-          animate={{
-            top: ["0%", "100%", "0%"],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Number.POSITIVE_INFINITY,
-            ease: "linear",
-          }}
-        />
-
-        <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold">
-          {type === "players" ? (
-            <Users className="h-5 w-5 text-blue-400" />
-          ) : (
-            <FileText className="h-5 w-5 text-blue-400" />
-          )}
-          <GlitchText text={title} className="font-mono" />
-          {/* Add small warning indicator */}
-          <motion.div
-            className="ml-2 h-1.5 w-1.5 rounded-full bg-red-600"
-            animate={{ opacity: [0.6, 1, 0.6] }}
-            transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
-          />
-        </h3>
-        <div className="space-y-2">
-          {data.map((item, index) => (
-            <motion.div
-              key={index}
-              whileHover={{
-                scale: 1.01,
-                transition: { duration: 0.2 },
-              }}
-              className="group"
-            >
-              <Card className="relative overflow-hidden border-blue-500/20 bg-black/70">
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent"
-                  initial={{ x: "100%" }}
-                  whileHover={{ x: "0%" }}
-                  transition={{ duration: 0.8, ease: "easeOut" }}
-                />
-                <div className="relative p-4">
-                  {type === "players" ? (
-                    <div className="flex items-center justify-between font-mono">
-                      <span>OPERATIVE_{item.id}</span>
-                      <Badge
-                        variant={
-                          item.status === "COMPROMISED"
-                            ? "destructive"
-                            : "outline"
-                        }
-                        className={
-                          item.status !== "COMPROMISED"
-                            ? "border-blue-500/30 text-blue-300"
-                            : ""
-                        }
-                      >
-                        {item.status}
-                        {/* Add small warning indicator for compromised status */}
-                        {item.status === "COMPROMISED" && (
-                          <motion.div
-                            className="ml-1 inline-block h-1 w-1 rounded-full bg-amber-500"
-                            animate={{ opacity: [0.6, 1, 0.6] }}
-                            transition={{
-                              duration: 1.5,
-                              repeat: Number.POSITIVE_INFINITY,
-                            }}
-                          />
-                        )}
-                      </Badge>
-                    </div>
-                  ) : (
-                    <div className="font-mono text-sm text-blue-300/80">
-                      {item}
-                    </div>
-                  )}
-                </div>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      </Card>
-    );
-  }
 
   function ProgressCard({
     title,
@@ -1133,6 +1036,9 @@ export default function Game_Interface({
   }
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
+      {isError && (
+        <HackerError message={errorText} onClose={() => setIsError(false)} />
+      )}
       <div className="container relative z-10 mx-auto space-y-8 py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -1216,6 +1122,8 @@ export default function Game_Interface({
         >
           {match_query.data && <InfoBox />}
           {match_query.data &&
+            Array.isArray(match_query.data.game_info?.president_laws) &&
+            match_query.data.game_info?.president_laws?.length > 0 &&
             match_query.data.game_info?.president ===
               session?.user.username && (
               <DiscardPolicyCard_box
@@ -1228,8 +1136,9 @@ export default function Game_Interface({
               />
             )}
           {match_query.data &&
-            match_query.data.game_info?.chancellor ===
-              session?.user.username && (
+            match_query.data.game_info?.chancellor === session?.user.username &&
+            Array.isArray(match_query.data.game_info?.chancellor_laws) &&
+            match_query.data.game_info?.chancellor_laws?.length > 0 && (
               <DiscardPolicyCard_box
                 title={
                   match_query.data.game_info?.chancellor_role_name +
