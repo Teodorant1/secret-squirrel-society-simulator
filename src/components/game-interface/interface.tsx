@@ -136,11 +136,11 @@ export default function Game_Interface({
       match_password: match_password,
       player_password: playerPassword,
     },
-    {
-      refetchOnWindowFocus: true,
-      refetchOnMount: true,
-      refetchInterval: 10000,
-    },
+    // {
+    //   refetchOnWindowFocus: true,
+    //   refetchOnMount: true,
+    //   refetchInterval: 10000,
+    // },
   );
 
   async function refetch_n_show() {

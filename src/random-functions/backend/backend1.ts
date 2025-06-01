@@ -1516,7 +1516,11 @@ export async function tally_vote_results(
       if (!actual_updated_match) {
         throw new Error("can't access actual_updated_match in order to");
       }
-      await set_up_next_election(actual_updated_match);
+
+      const game_is_over = await victory_check(actual_updated_match);
+      if (game_is_over === false) {
+        await set_up_next_election(actual_updated_match);
+      }
 
       const cleanup = await eot_cleanup_step(found_election.match_struct);
     }
