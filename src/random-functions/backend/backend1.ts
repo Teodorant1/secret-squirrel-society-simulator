@@ -271,7 +271,7 @@ export async function victory_check(found_match: match_type) {
   if (!hitler) {
     throw new Error("Hitler doesn't exist");
   }
-  if (!found_match.liberal_laws) {
+  if (found_match.liberal_laws === undefined) {
     throw new Error("found_match.liberal_laws doesn't exist");
   }
   const hitler_is_alive = found_match.alive_players?.includes(hitler);

@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 const links = [
   { href: "/spy", label: "Home" },
   { href: "/spy/game", label: "Game" },
-  { href: "/spy/customize", label: "Customize" },
-  { href: "/spy/training", label: "Training" },
+  // { href: "/spy/customize", label: "Customize" },
+  // { href: "/spy/training", label: "Training" },
   { href: "/spy/museum", label: "Museum" },
   { href: "/spy/AI", label: "AI Interface" },
   { href: "/spy/faq", label: "FAQ" },
