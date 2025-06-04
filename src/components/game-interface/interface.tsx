@@ -482,7 +482,6 @@ export default function Game_Interface({
           animate={{ top: ["0%", "100%", "0%"] }}
           transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
         />
-
         <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold">
           <Info className="h-5 w-5 text-blue-400" />
           <GlitchText text={"GAME STATUS//"} className="font-mono" />
@@ -561,11 +560,11 @@ export default function Game_Interface({
   function VotingCard() {
     return (
       <Card className="relative overflow-hidden border-yellow-500/30 bg-black/50 p-6 backdrop-blur-sm">
-        <motion.div
+        {/* <motion.div
           className="absolute inset-0 h-1 w-full bg-yellow-400/10"
           animate={{ top: ["0%", "100%", "0%"] }}
           transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-        />
+        /> */}
         <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold">
           <Vote className="h-5 w-5 text-yellow-400" />
           <GlitchText text="VOTING ROUND//" className="font-mono" />
@@ -610,11 +609,11 @@ export default function Game_Interface({
   function PreviousElectionsCard() {
     return (
       <Card className="relative overflow-hidden border-green-500/30 bg-black/50 p-6 backdrop-blur-sm">
-        <motion.div
+        {/* <motion.div
           className="absolute inset-0 h-1 w-full bg-green-400/10"
           animate={{ top: ["0%", "100%", "0%"] }}
           transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-        />
+        /> */}
         <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold">
           <History className="h-5 w-5 text-green-400" />
           <GlitchText text="ELECTION LOG//" className="font-mono" />
@@ -685,7 +684,7 @@ export default function Game_Interface({
   function PlayersCard() {
     return (
       <Card className="relative overflow-hidden border-blue-500/30 bg-black/50 p-6 backdrop-blur-sm">
-        {/* Scan line animation */}
+        {/* Scan line animation
         <motion.div
           className="absolute inset-0 h-1 w-full bg-blue-400/10"
           animate={{
@@ -696,7 +695,7 @@ export default function Game_Interface({
             repeat: Number.POSITIVE_INFINITY,
             ease: "linear",
           }}
-        />
+        /> */}
         <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold">
           <Users className="h-5 w-5 text-blue-400" />
 
@@ -727,12 +726,12 @@ export default function Game_Interface({
                       className="group"
                     >
                       <Card className="relative overflow-hidden border-blue-500/20 bg-black/70">
-                        <motion.div
+                        {/* <motion.div
                           className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent"
                           initial={{ x: "100%" }}
                           whileHover={{ x: "0%" }}
                           transition={{ duration: 0.8, ease: "easeOut" }}
-                        />
+                        /> */}
                         <div className="relative p-4">
                           <div className="flex items-center justify-between font-mono">
                             <span>
@@ -803,19 +802,6 @@ export default function Game_Interface({
       <Card
         className={`relative overflow-hidden border-red-500/30 bg-black/50 p-6 backdrop-blur-sm ${className}`}
       >
-        {/* Scan line animation */}
-        <motion.div
-          className="absolute inset-0 h-1 w-full bg-red-400/10"
-          animate={{
-            top: ["0%", "100%", "0%"],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Number.POSITIVE_INFINITY,
-            ease: "linear",
-          }}
-        />
-
         <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold text-red-300">
           <FileMinus2 className="h-5 w-5 text-red-400" />
           <GlitchText text={title} className="font-mono" />
@@ -1037,7 +1023,9 @@ export default function Game_Interface({
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
       {isError && (
-        <HackerError message={errorText} onClose={() => setIsError(false)} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <HackerError message={errorText} onClose={() => setIsError(false)} />
+        </div>
       )}
       <div className="container relative z-10 mx-auto space-y-8 py-12">
         <motion.div
@@ -1214,14 +1202,6 @@ export default function Game_Interface({
                 className="group"
               >
                 <Card className="relative overflow-hidden border-blue-500/20 bg-black/70 p-4">
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100"
-                    initial={false}
-                    animate={{
-                      backgroundPosition: ["100% 0%", "0% 0%"],
-                    }}
-                    transition={{ duration: 1.5, ease: "easeInOut" }}
-                  />
                   <div className="relative">
                     <GlitchText
                       text={info.title}

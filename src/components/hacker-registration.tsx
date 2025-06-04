@@ -107,10 +107,12 @@ export function HackerRegistration({ className }: { className?: string }) {
         ) : (
           <>
             {isError && (
-              <HackerError
-                message={errorText}
-                onClose={() => setIsError(false)}
-              />
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                <HackerError
+                  message={errorText}
+                  onClose={() => setIsError(false)}
+                />
+              </div>
             )}
 
             <form

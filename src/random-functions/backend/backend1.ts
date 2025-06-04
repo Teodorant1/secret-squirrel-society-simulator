@@ -14,6 +14,7 @@ import {
 import { eq, and, desc } from "drizzle-orm";
 import { CanBeNominated_for_chancellor } from "../frontend/frontend1";
 export type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+export type game_info_state = Awaited<ReturnType<typeof get_info_on_game>>;
 
 const policies = [
   "liberal",
@@ -96,6 +97,7 @@ export async function sleep(ms: number): Promise<void> {
 }
 
 async function set_up_next_election(
+  db: Transaction,
   found_match: match_type,
   is_special_election?: boolean,
   special_election_successor?: string,
@@ -213,6 +215,7 @@ function get_config_based_on_number_of_players(number_of_player: number) {
 }
 
 export async function nominate_chancellor(
+  db: Transaction,
   match_id: string,
   username: string,
   match_password: string,
@@ -222,6 +225,7 @@ export async function nominate_chancellor(
   console.log("attempting to nominate a chancellor");
 
   const info = await get_info_on_game(
+    db,
     match_id,
     username,
     match_password,
@@ -313,7 +317,10 @@ export async function victory_check(found_match: match_type) {
   return false;
 }
 
-export async function eot_cleanup_step(found_match: match_type) {
+export async function eot_cleanup_step(
+  db: Transaction,
+  found_match: match_type,
+) {
   if (!found_match.deck || !found_match.discard_pile || !found_match.id) {
     throw Error("Can't access deck or match perhaps");
   }
@@ -342,262 +349,260 @@ export async function eot_cleanup_step(found_match: match_type) {
 }
 
 export async function start_game(
+  db: Transaction,
   match_id: string,
   username: string,
   match_password: string,
   player_password: string,
   // name: string,
 ) {
-  return await db.transaction(
-    async (tx) => {
-      const locked_match = await tx
-        .select()
-        .from(match)
-        .where(eq(match.id, match_id))
-        .for("update");
-      const found_match = await tx.query.match.findFirst({
-        where: eq(match.id, match_id),
+  // return await db.transaction(
+  //   async (db) => {
+  const locked_match = await db
+    .select()
+    .from(match)
+    .where(eq(match.id, match_id))
+    .for("update");
+  const found_match = await db.query.match.findFirst({
+    where: eq(match.id, match_id),
+    with: {
+      elections: {
         with: {
-          elections: {
-            with: {
-              votes: true, // Eager load votes
-            },
-          },
-          players: {
-            orderBy: desc(player.joined_at), // Sort players by join date (newest first)
-          },
+          votes: true, // Eager load votes
         },
-      });
+      },
+      players: {
+        orderBy: desc(player.joined_at), // Sort players by join date (newest first)
+      },
+    },
+  });
 
-      console.log(found_match?.players);
+  console.log(found_match?.players);
 
-      if (!found_match) {
-        throw new Error("Match not found.");
-      }
-      const is_present_in_match = await Check_if_player_is_present_in_match(
-        player_password,
-        username,
-        found_match,
-      );
-      if (
-        (found_match.has_started && is_present_in_match?.ispresent === false) ||
-        found_match.isOver
-      ) {
-        throw new Error(
-          "v1 It is impossible to start the match at this time, it has either already started and/or finished",
-        );
-      }
-      if (found_match.players.length < 5) {
-        throw new Error("too few players to start a game");
-      }
-      // if (is_present_in_match?.is_alive === false) {
-      // throw new Error("It is forbidden to start games from the afterlife");
-      // }
-      if (
-        found_match.creator_owner !== username ||
-        found_match.password !== match_password ||
-        !is_present_in_match?.ispresent
-      ) {
-        throw new Error(
-          "You are not the owner, please stand by, an elite clown commando unit is being rerouted to your position",
-        );
-      }
-      const config = get_config_based_on_number_of_players(
-        found_match.players.length,
-      );
-      const players = found_match.players;
-      // players.sort(
-      //   (a, b) =>
-      //     new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime(),
-      // );
+  if (!found_match) {
+    throw new Error("Match not found.");
+  }
+  const is_present_in_match = await Check_if_player_is_present_in_match(
+    player_password,
+    username,
+    found_match,
+  );
+  if (
+    (found_match.has_started && is_present_in_match?.ispresent === false) ||
+    found_match.isOver
+  ) {
+    throw new Error(
+      "v1 It is impossible to start the match at this time, it has either already started and/or finished",
+    );
+  }
+  if (found_match.players.length < 5) {
+    throw new Error("too few players to start a game");
+  }
+  // if (is_present_in_match?.is_alive === false) {
+  // throw new Error("It is forbidden to start games from the afterlife");
+  // }
+  if (
+    found_match.creator_owner !== username ||
+    found_match.password !== match_password ||
+    !is_present_in_match?.ispresent
+  ) {
+    throw new Error(
+      "You are not the owner, please stand by, an elite clown commando unit is being rerouted to your position",
+    );
+  }
+  const config = get_config_based_on_number_of_players(
+    found_match.players.length,
+  );
+  const players = found_match.players;
+  // players.sort(
+  //   (a, b) =>
+  //     new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime(),
+  // );
 
-      // const new_players = players.sort(() => Math.random() - 0.5);
+  // const new_players = players.sort(() => Math.random() - 0.5);
 
-      // first shuffle
-      const new_players = shuffleArray(players);
+  // first shuffle
+  const new_players = shuffleArray(players);
 
-      const just_the_names: string[] = [];
+  const just_the_names: string[] = [];
 
-      if (!new_players.length || !new_players) {
-        throw new Error("No players found.");
-      }
-      for (let i = 0; i < new_players.length && i < 10; i++) {
-        console.log(i);
-        just_the_names.push(new_players[i]!.username);
-      }
+  if (!new_players.length || !new_players) {
+    throw new Error("No players found.");
+  }
+  for (let i = 0; i < new_players.length && i < 10; i++) {
+    console.log(i);
+    just_the_names.push(new_players[i]!.username);
+  }
 
-      //second shuffle
-      const new_just_the_names = shuffleArray(just_the_names);
+  //second shuffle
+  const new_just_the_names = shuffleArray(just_the_names);
 
-      const shuffled_policies = shuffleArray(policies);
-      console.error("fascists numbers", config.fascist_numbers);
-      for (let i = 0; i < config.fascist_numbers; i++) {
-        if (i === 0) {
-          await tx
-            .update(match)
-            .set({
-              president: new_just_the_names[0],
-              waiting_on: new_just_the_names[0],
-              stage: stageEnum.enumValues[1],
-              substage: substageEnum.enumValues[1],
+  const shuffled_policies = shuffleArray(policies);
+  console.error("fascists numbers", config.fascist_numbers);
+  for (let i = 0; i < config.fascist_numbers; i++) {
+    if (i === 0) {
+      await db
+        .update(match)
+        .set({
+          president: new_just_the_names[0],
+          waiting_on: new_just_the_names[0],
+          stage: stageEnum.enumValues[1],
+          substage: substageEnum.enumValues[1],
 
-              fascist_laws_array: config.fascist_track,
-              liberal_laws_array: config.liberal_track,
+          fascist_laws_array: config.fascist_track,
+          liberal_laws_array: config.liberal_track,
 
-              has_started: true,
-              alive_players: new_just_the_names,
-              original_players_array: new_just_the_names,
-              hitler: new_players[i]!.username,
-              hitler_has_intel: config.hitler_has_intel,
-              deck: shuffled_policies,
-            })
-            .where(eq(match.id, new_players[i]!.match));
-          await tx
-            .update(player)
-            .set({
-              is_fascist: true,
-              is_hitler: true,
-            })
-            .where(
-              and(
-                eq(player.id, new_players[i]!.id),
-                eq(player.username, new_players[i]!.username),
-                eq(player.match, new_players[i]!.match),
-              ),
-            );
-        } else {
-          await tx
-            .update(player)
-            .set({
-              is_fascist: true,
-            })
-            .where(
-              and(
-                eq(player.id, new_players[i]!.id),
-                eq(player.username, new_players[i]!.username),
-                eq(player.match, new_players[i]!.match),
-              ),
-            );
-        }
-      }
-
-      const current_match = await tx.query.match.findFirst({
-        where: eq(match.id, match_id),
-        with: {
-          elections: {
-            with: {
-              votes: true, // Eager load votes
-            },
-          },
-          players: true,
-        },
-      });
-
-      const current_match_players = current_match?.players;
-
-      const ideology_intel_array: string[] = [];
-      const liberal_ideology_intel_array: string[] = ["You are a liberal"];
-
-      const hitler_is_intel =
-        current_match?.hitler + " is " + current_match?.hitler_role_name;
-
-      ideology_intel_array.push(hitler_is_intel);
-      if (!current_match_players) {
-        throw new Error("No players present!");
-      }
-      for (const player of current_match_players) {
-        const ideology = player.is_fascist
-          ? current_match.fascist_faction_name
-          : current_match.liberal_faction_name;
-
-        ideology_intel_array.push(player.username + " is " + ideology);
-      }
-
-      if (config.hitler_has_intel === true) {
-        await tx
-          .update(player)
-          .set({ intel: ideology_intel_array })
-          .where(
-            and(
-              eq(player.is_fascist, true),
-              eq(player.match, current_match.id),
-            ),
-          );
-      } else {
-        await tx
-          .update(player)
-          .set({ intel: ideology_intel_array })
-          .where(
-            and(
-              eq(player.is_fascist, true),
-              eq(player.is_hitler, false),
-              eq(player.match, current_match.id),
-            ),
-          );
-
-        await tx
-          .update(player)
-          .set({ intel: ["You are Hitler!"] })
-          .where(
-            and(
-              eq(player.is_fascist, true),
-              eq(player.is_hitler, true),
-              eq(player.match, current_match.id),
-            ),
-          );
-      }
-
-      await tx
+          has_started: true,
+          alive_players: new_just_the_names,
+          original_players_array: new_just_the_names,
+          hitler: new_players[i]!.username,
+          hitler_has_intel: config.hitler_has_intel,
+          deck: shuffled_policies,
+        })
+        .where(eq(match.id, new_players[i]!.match));
+      await db
         .update(player)
-        .set({ intel: liberal_ideology_intel_array })
+        .set({
+          is_fascist: true,
+          is_hitler: true,
+        })
         .where(
           and(
-            eq(player.is_fascist, false),
-            eq(player.is_hitler, false),
-            eq(player.match, current_match.id),
+            eq(player.id, new_players[i]!.id),
+            eq(player.username, new_players[i]!.username),
+            eq(player.match, new_players[i]!.match),
           ),
         );
-      const the_election = await tx
-        .insert(election)
-        .values({
-          match: current_match.id,
-          president_candidate: current_match.president,
-          voting_list: current_match.alive_players,
+    } else {
+      await db
+        .update(player)
+        .set({
+          is_fascist: true,
         })
-        .returning();
+        .where(
+          and(
+            eq(player.id, new_players[i]!.id),
+            eq(player.username, new_players[i]!.username),
+            eq(player.match, new_players[i]!.match),
+          ),
+        );
+    }
+  }
 
-      const final_result = await tx.query.match.findFirst({
-        where: eq(match.id, match_id),
+  const current_match = await db.query.match.findFirst({
+    where: eq(match.id, match_id),
+    with: {
+      elections: {
         with: {
-          elections: {
-            with: {
-              votes: true, // Eager load votes
-            },
-          },
-          players: {
-            orderBy: desc(player.joined_at), // Sort players by join date (newest first)
-          },
+          votes: true, // Eager load votes
         },
-      });
-
-      console.log("final_result", final_result);
+      },
+      players: true,
     },
+  });
 
-    {
-      isolationLevel: "read committed",
-      accessMode: "read write",
-      deferrable: true,
+  const current_match_players = current_match?.players;
+
+  const ideology_intel_array: string[] = [];
+  const liberal_ideology_intel_array: string[] = ["You are a liberal"];
+
+  const hitler_is_intel =
+    current_match?.hitler + " is " + current_match?.hitler_role_name;
+
+  ideology_intel_array.push(hitler_is_intel);
+  if (!current_match_players) {
+    throw new Error("No players present!");
+  }
+  for (const player of current_match_players) {
+    const ideology = player.is_fascist
+      ? current_match.fascist_faction_name
+      : current_match.liberal_faction_name;
+
+    ideology_intel_array.push(player.username + " is " + ideology);
+  }
+
+  if (config.hitler_has_intel === true) {
+    await db
+      .update(player)
+      .set({ intel: ideology_intel_array })
+      .where(
+        and(eq(player.is_fascist, true), eq(player.match, current_match.id)),
+      );
+  } else {
+    await db
+      .update(player)
+      .set({ intel: ideology_intel_array })
+      .where(
+        and(
+          eq(player.is_fascist, true),
+          eq(player.is_hitler, false),
+          eq(player.match, current_match.id),
+        ),
+      );
+
+    await db
+      .update(player)
+      .set({ intel: ["You are Hitler!"] })
+      .where(
+        and(
+          eq(player.is_fascist, true),
+          eq(player.is_hitler, true),
+          eq(player.match, current_match.id),
+        ),
+      );
+  }
+
+  await db
+    .update(player)
+    .set({ intel: liberal_ideology_intel_array })
+    .where(
+      and(
+        eq(player.is_fascist, false),
+        eq(player.is_hitler, false),
+        eq(player.match, current_match.id),
+      ),
+    );
+  const the_election = await db
+    .insert(election)
+    .values({
+      match: current_match.id,
+      president_candidate: current_match.president,
+      voting_list: current_match.alive_players,
+    })
+    .returning();
+
+  const final_result = await db.query.match.findFirst({
+    where: eq(match.id, match_id),
+    with: {
+      elections: {
+        with: {
+          votes: true, // Eager load votes
+        },
+      },
+      players: {
+        orderBy: desc(player.joined_at), // Sort players by join date (newest first)
+      },
     },
-  );
+  });
+
+  console.log("final_result", final_result);
+  // },
+  // {
+  //   isolationLevel: "read committed",
+  //   accessMode: "read write",
+  //   deferrable: true,
+  // },
+  // );
 }
 export async function get_info_on_game(
+  db: Transaction,
   match_id: string,
   username: string,
   password: string,
   player_password: string,
   is_server_side?: boolean,
 ) {
-  // const locked_match = await tx
+  // const locked_match = await db
   //   .select()
   //   .from(match)
   //   .where(eq(match.id, match_id))
@@ -758,9 +763,8 @@ export async function get_info_on_game(
   return state;
 }
 
-export type game_info_state = Awaited<ReturnType<typeof get_info_on_game>>;
-
 export async function discard_policy(
+  db: Transaction,
   match_id: string,
   username: string,
   match_password: string,
@@ -768,6 +772,7 @@ export async function discard_policy(
   index: number,
 ) {
   const info = await get_info_on_game(
+    db,
     match_id,
     username,
     match_password,
@@ -816,8 +821,7 @@ export async function discard_policy(
     ];
     console.log("new_discard:", new_discard);
 
-    const removed = policies?.splice(index, 1);
-    console.log("removed:", removed);
+    policies?.splice(index, 1);
 
     await db
       .update(match)
@@ -882,7 +886,7 @@ export async function discard_policy(
       }
       const game_is_over = await victory_check(actual_new_match);
       if (game_is_over === false) {
-        await set_up_next_election(actual_new_match);
+        await set_up_next_election(db, actual_new_match);
       }
     }
 
@@ -922,7 +926,7 @@ export async function discard_policy(
       if (results.isSpecial_law === false) {
         const game_is_over = await victory_check(actual_new_match);
         if (game_is_over === false) {
-          await set_up_next_election(actual_new_match);
+          await set_up_next_election(db, actual_new_match);
         }
       } else if (
         results.isSpecial_law === true &&
@@ -1008,7 +1012,7 @@ export async function discard_policy(
             ),
           )
           .returning();
-        await set_up_next_election(actual_new_match);
+        await set_up_next_election(db, actual_new_match);
       } else if (
         results.isSpecial_law === true &&
         results.exact_law !== "PeekNextThreePolicies"
@@ -1048,6 +1052,7 @@ export function is_next_power_special(found_match: match_type) {
   return returns;
 }
 export async function handle_veto(
+  db: Transaction,
   match_id: string,
   match_password: string,
   username: string,
@@ -1055,6 +1060,7 @@ export async function handle_veto(
   voting_yes: boolean,
 ) {
   const info = await get_info_on_game(
+    db,
     match_id,
     username,
     match_password,
@@ -1165,6 +1171,7 @@ export async function handle_veto(
   return 0;
 }
 export async function handle_special_power(
+  db: Transaction,
   found_match_id: string,
   username: string,
   target: string,
@@ -1172,6 +1179,7 @@ export async function handle_special_power(
   match_password: string,
 ) {
   const info = await get_info_on_game(
+    db,
     found_match_id,
     username,
     match_password,
@@ -1302,7 +1310,7 @@ export async function handle_special_power(
 
     const game_is_over = await victory_check(actual_updated_execution_match);
     if (game_is_over === false) {
-      await set_up_next_election(actual_updated_execution_match);
+      await set_up_next_election(db, actual_updated_execution_match);
     }
   } else if (power === "SpecialElection") {
     const osint_nugget =
@@ -1325,17 +1333,18 @@ export async function handle_special_power(
       .set({ open_source_intel: new_osint_intel_array })
       .where(eq(match.id, found_match.id));
 
-    await set_up_next_election(found_match, true, target);
+    await set_up_next_election(db, found_match, true, target);
     return 0;
   } else {
     throw new Error("You went to the wrong neighborhood");
   }
-  await set_up_next_election(found_match);
+  await set_up_next_election(db, found_match);
 
   return 0;
 }
 
 export async function tally_vote_results(
+  db: Transaction,
   election_id: string,
   alive_players: string[],
 ) {
@@ -1434,7 +1443,7 @@ export async function tally_vote_results(
         throw new Error("can't access updated_match[0]");
       }
 
-      const eot_cleanup_step_1 = await eot_cleanup_step(updated_match[0]);
+      const eot_cleanup_step_1 = await eot_cleanup_step(db, updated_match[0]);
     } else if (
       yay_votes &&
       nay_votes &&
@@ -1519,16 +1528,17 @@ export async function tally_vote_results(
 
       const game_is_over = await victory_check(actual_updated_match);
       if (game_is_over === false) {
-        await set_up_next_election(actual_updated_match);
+        await set_up_next_election(db, actual_updated_match);
       }
 
-      const cleanup = await eot_cleanup_step(found_election.match_struct);
+      const cleanup = await eot_cleanup_step(db, found_election.match_struct);
     }
   }
   return 0;
 }
 
 export async function vote_in_election(
+  db: Transaction,
   match_id: string,
   match_password: string,
   username: string,
@@ -1538,6 +1548,7 @@ export async function vote_in_election(
   chancellor_candidate: string,
 ) {
   const info = await get_info_on_game(
+    db,
     match_id,
     username,
     match_password,
@@ -1549,86 +1560,98 @@ export async function vote_in_election(
     throw new Error("It is forbidden to vote in elections from the afterlife");
   }
 
-  return await db.transaction(
-    async (tx) => {
-      const locked_election = await tx
-        .select()
-        .from(election)
-        .where(and(eq(election.match, match_id), eq(election.is_over, false)))
-        .for("update")
-        .limit(1);
+  // return await db.transaction(
+  //   async (db) => {
+  const locked_election = await db
+    .select()
+    .from(election)
+    .where(and(eq(election.match, match_id), eq(election.is_over, false)))
+    .for("update")
+    .limit(1);
 
-      // console.error(
-      //   "ARGUMENTS",
-      //   match_id,
-      //   match_password,
-      //   username,
-      //   player_password,
-      //   voting_yes,
-      //   president_candidate,
-      //   chancellor_candidate,
-      // );
-      if (
-        locked_election[0] &&
-        president_candidate === locked_election[0].president_candidate &&
-        chancellor_candidate === locked_election[0].chancellor_candidate &&
-        locked_election[0].voting_list.includes(username)
-      ) {
-        if (!locked_election[0]) {
-          throw Error("Election doesn't exist");
-        }
-        const casted_vote = await tx
-          .insert(vote)
-          .values({
-            election: locked_election[0].id,
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-            playerID: info.this_player!.id!,
-            username: username,
-            voting_yes: voting_yes,
-          })
-          .returning();
+  // console.error(
+  //   "ARGUMENTS",
+  //   match_id,
+  //   match_password,
+  //   username,
+  //   player_password,
+  //   voting_yes,
+  //   president_candidate,
+  //   chancellor_candidate,
+  // );
+  if (
+    locked_election[0] &&
+    president_candidate === locked_election[0].president_candidate &&
+    chancellor_candidate === locked_election[0].chancellor_candidate &&
+    locked_election[0].voting_list.includes(username)
+  ) {
+    if (!locked_election[0]) {
+      throw Error("Election doesn't exist");
+    }
+    const casted_vote = await db
+      .insert(vote)
+      .values({
+        election: locked_election[0].id,
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        playerID: info.this_player!.id!,
+        username: username,
+        voting_yes: voting_yes,
+      })
+      .returning();
 
-        const updated_voting_list = locked_election[0].voting_list.filter(
-          (name) => name !== username,
-        );
+    const updated_voting_list = locked_election[0].voting_list.filter(
+      (name) => name !== username,
+    );
 
-        const spray_voter_with_UV_fluid = await tx
-          .update(election)
-          .set({ voting_list: updated_voting_list })
-          .where(
-            and(
-              eq(election.id, info.ongoingElection!.id),
-              eq(election.is_over, false),
-              eq(election.match, match_id),
-            ),
-          )
-          .returning();
+    const spray_voter_with_UV_fluid = await db
+      .update(election)
+      .set({ voting_list: updated_voting_list })
+      .where(
+        and(
+          eq(election.id, info.ongoingElection!.id),
+          eq(election.is_over, false),
+          eq(election.match, match_id),
+        ),
+      )
+      .returning();
 
-        const actual_spray_voter_with_UV_fluid = spray_voter_with_UV_fluid[0];
+    const actual_spray_voter_with_UV_fluid = spray_voter_with_UV_fluid[0];
 
-        const alive_players = info.player_order;
+    const alive_players = info.player_order;
 
-        const returning_parcel = {
-          alive_players: alive_players,
-          vote: casted_vote[0],
-          updated_voting_list: spray_voter_with_UV_fluid[0]?.voting_list,
-          election_id: locked_election[0].id,
-        };
+    const returning_parcel = {
+      alive_players: alive_players,
+      vote: casted_vote[0],
+      updated_voting_list: spray_voter_with_UV_fluid[0]?.voting_list,
+      election_id: locked_election[0].id,
+    };
 
-        return returning_parcel;
-      } else {
-        {
-          throw new Error("Player not eligible to vote in this election");
-        }
-      }
-    },
+    const voting_list = returning_parcel.updated_voting_list;
+    if (!voting_list) {
+      throw Error("Can't access tally_vote_results voting_list");
+    }
+    if (voting_list?.length === 0) {
+      await tally_vote_results(
+        db,
+        returning_parcel.election_id,
+        returning_parcel.alive_players,
+      );
+    }
 
+    return returning_parcel;
+  } else {
     {
-      isolationLevel: "serializable",
-      accessMode: "read write",
-      deferrable: true,
-    },
-  );
+      throw new Error("Player not eligible to vote in this election");
+    }
+  }
+  //   },
+
+  //   {
+  //     isolationLevel: "serializable",
+  //     accessMode: "read write",
+  //     deferrable: true,
+  //   },
+  // );
 }
 export async function Check_if_player_is_present_in_match(
   password: string,
@@ -1678,13 +1701,14 @@ export async function Check_if_player_is_present_in_match(
 }
 
 export async function join_game(
+  db: Transaction,
   match_id: string,
   player_name: string,
   password: string,
   match_password: string,
 ) {
   // return await db.transaction(
-  //   async (tx) => {
+  //   async (db) => {
   // console.log(match_id, player_name, password, match_password);
   const locked_match = await db
     .select()
@@ -1776,8 +1800,9 @@ export async function join_game(
 }
 
 export async function seed_players_into_existing_match(
+  db: Transaction,
   match_id: string,
-  // tx: Transaction,
+  // db: Transaction,
 ) {
   const playerUsernames = ["testuser1", "testuser2", "testuser3", "testuser4"];
   const playerPassword = "password";
@@ -1826,6 +1851,7 @@ export async function seed_players_into_existing_match(
 }
 
 export async function create_game(
+  db: Transaction,
   name: string,
   username: string,
   player_password: string,
@@ -1868,6 +1894,7 @@ export async function create_game(
   }
 
   const create_user_result = await join_game(
+    db,
     new_match.id,
     username,
     player_password,
@@ -1876,17 +1903,17 @@ export async function create_game(
   const IS_PRODUCTION = process.env.IS_PRODUCTION;
   if (IS_PRODUCTION === "false") {
     console.log("simulating test environment and");
-    await seed_players_into_existing_match(new_match.id);
+    await seed_players_into_existing_match(db, new_match.id);
   }
 
   return { new_match, create_user_result }; // Return the created match
 
   // return await db.transaction(
-  //   async (tx) => {
+  //   async (db) => {
   //
 
   // // Insert the new match and return it
-  // const new_match_return = await tx
+  // const new_match_return = await db
   //   .insert(match)
   //   .values({
   //     name: name,

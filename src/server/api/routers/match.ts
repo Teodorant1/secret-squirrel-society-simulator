@@ -1,10 +1,8 @@
+import { z } from "zod";
 import {
   GetAllRelevantGames,
   nominate_chancellor,
   tally_vote_results,
-} from "@/random-functions/backend/backend1";
-import { z } from "zod";
-import {
   start_game,
   get_info_on_game,
   join_game,
@@ -30,13 +28,16 @@ export const MatchRouter = createTRPCRouter({
       try {
         // const game = await start_game(input.match_id, input.player_id);
 
-        const discard_policy_result = await discard_policy(
-          input.match_id,
-          ctx.session.user.username,
-          input.match_password,
-          input.player_password,
-          input.index,
-        );
+        const discard_policy_result = await ctx.db.transaction(async (tx) => {
+          return await discard_policy(
+            tx,
+            input.match_id,
+            ctx.session.user.username,
+            input.match_password,
+            input.player_password,
+            input.index,
+          );
+        });
 
         return {
           discard_policy_result: discard_policy_result,
@@ -73,13 +74,16 @@ export const MatchRouter = createTRPCRouter({
       try {
         // const game = await start_game(input.match_id, input.player_id);
 
-        const handled_special_power = await handle_special_power(
-          input.match_id,
-          ctx.session.user.username,
-          input.target,
-          input.player_password,
-          input.match_password,
-        );
+        const handled_special_power = await ctx.db.transaction(async (tx) => {
+          return await handle_special_power(
+            tx,
+            input.match_id,
+            ctx.session.user.username,
+            input.target,
+            input.player_password,
+            input.match_password,
+          );
+        });
 
         return {
           handled_special_power: handled_special_power,
@@ -116,13 +120,16 @@ export const MatchRouter = createTRPCRouter({
       try {
         // const game = await start_game(input.match_id, input.player_id);
 
-        const veto_result = await handle_veto(
-          input.match_id,
-          input.match_password,
-          ctx.session.user.username,
-          input.player_password,
-          input.voting_yes,
-        );
+        const veto_result = await ctx.db.transaction(async (tx) => {
+          return await handle_veto(
+            tx,
+            input.match_id,
+            input.match_password,
+            ctx.session.user.username,
+            input.player_password,
+            input.voting_yes,
+          );
+        });
 
         return {
           veto_result: veto_result,
@@ -161,26 +168,25 @@ export const MatchRouter = createTRPCRouter({
       try {
         // const game = await start_game(input.match_id, input.player_id);
 
-        const election_result = await vote_in_election(
-          input.match_id,
-          input.match_password,
-          ctx.session.user.username,
-          input.player_password,
-          input.voting_yes,
-          input.president_candidate,
-          input.chancellor_candidate,
+        const election_result = await ctx.db.transaction(
+          async (tx) => {
+            return await vote_in_election(
+              tx,
+              input.match_id,
+              input.match_password,
+              ctx.session.user.username,
+              input.player_password,
+              input.voting_yes,
+              input.president_candidate,
+              input.chancellor_candidate,
+            );
+          },
+          {
+            isolationLevel: "serializable",
+            accessMode: "read write",
+            deferrable: true,
+          },
         );
-
-        const voting_list = election_result.updated_voting_list;
-        if (!voting_list) {
-          throw Error("Can't access tally_vote_results voting_list");
-        }
-        if (voting_list?.length === 0) {
-          await tally_vote_results(
-            election_result.election_id,
-            election_result.alive_players,
-          );
-        }
 
         return {
           election_result: "election_result",
@@ -217,13 +223,16 @@ export const MatchRouter = createTRPCRouter({
       try {
         // const game = await start_game(input.match_id, input.player_id);
 
-        const nominated_chancellor = await nominate_chancellor(
-          input.match_id,
-          ctx.session.user.username,
-          input.match_password,
-          input.player_password,
-          input.candidate,
-        );
+        const nominated_chancellor = await ctx.db.transaction(async (tx) => {
+          return await nominate_chancellor(
+            tx,
+            input.match_id,
+            ctx.session.user.username,
+            input.match_password,
+            input.player_password,
+            input.candidate,
+          );
+        });
 
         return {
           nominated_chancellor: nominated_chancellor,
@@ -260,12 +269,16 @@ export const MatchRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       try {
-        const info = await get_info_on_game(
-          input.match_id,
-          ctx.session.user.username,
-          input.match_password,
-          input.player_password,
-        );
+        const info = await ctx.db.transaction(async (tx) => {
+          return await get_info_on_game(
+            tx,
+            input.match_id,
+            ctx.session.user.username,
+            input.match_password,
+            input.player_password,
+          );
+        });
+
         const current_date = new Date();
         console.error("current_date", current_date);
 
@@ -301,13 +314,15 @@ export const MatchRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        // const game = await start_game(input.match_id, input.player_id);
-        const game = await start_game(
-          input.match_id,
-          ctx.session.user.username,
-          input.match_password,
-          input.password,
-        );
+        const game = await ctx.db.transaction(async (tx) => {
+          return await start_game(
+            tx,
+            input.match_id,
+            ctx.session.user.username,
+            input.match_password,
+            input.password,
+          );
+        });
 
         return {
           game,
@@ -351,23 +366,25 @@ export const MatchRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const game = await create_game(
-          input.name,
-          ctx.session.user.username,
-          input.player_password,
-          input.liberal_faction_name,
-          input.fascist_faction_name,
-          input.president_role_name,
-          input.chancellor_role_name,
-          input.hitler_role_name,
-          input.liberal_faction_image_url,
-          input.fascist_faction_image_url,
-          input.president_role_image_url,
-          input.chancellor_role_image_url,
-          input.hitler_role_image_url,
-          input.password,
-        );
-
+        const game = await ctx.db.transaction(async (tx) => {
+          return await create_game(
+            tx,
+            input.name,
+            ctx.session.user.username,
+            input.player_password,
+            input.liberal_faction_name,
+            input.fascist_faction_name,
+            input.president_role_name,
+            input.chancellor_role_name,
+            input.hitler_role_name,
+            input.liberal_faction_image_url,
+            input.fascist_faction_image_url,
+            input.president_role_image_url,
+            input.chancellor_role_image_url,
+            input.hitler_role_image_url,
+            input.password,
+          );
+        });
         return {
           game: game,
           error: false,
@@ -400,12 +417,15 @@ export const MatchRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const game = await join_game(
-          input.match_id,
-          ctx.session.user.username,
-          input.password,
-          input.match_password,
-        );
+        const game = await ctx.db.transaction(async (tx) => {
+          return await join_game(
+            tx,
+            input.match_id,
+            ctx.session.user.username,
+            input.password,
+            input.match_password,
+          );
+        });
 
         return {
           game: game.found_match.id,
