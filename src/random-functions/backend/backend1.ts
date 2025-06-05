@@ -823,7 +823,7 @@ export async function discard_policy(
 
     policies?.splice(index, 1);
 
-    await db
+    const updated_match = await db
       .update(match)
       .set({
         discard_pile: new_discard,
@@ -832,7 +832,18 @@ export async function discard_policy(
         substage: substageEnum.enumValues[5],
         waiting_on: info.chancellor,
       })
-      .where(eq(match.id, info.id));
+      .where(eq(match.id, info.id))
+      .returning();
+
+    const actual_updated_match = updated_match[0];
+
+    if (actual_updated_match) {
+      console.log(
+        "actual_updated_match exists",
+        actual_updated_match.president_laws_pile,
+        actual_updated_match.chancellor_laws_pile,
+      );
+    }
   } else if (
     info.substage === substageEnum.enumValues[5] &&
     info.stage === stageEnum.enumValues[2] &&
@@ -897,7 +908,7 @@ export async function discard_policy(
           discard_pile: new_discard,
           president_laws_pile: [],
           chancellor_laws_pile: [],
-          liberal_laws: info.found_match_serverside.fascist_laws + 1,
+          fascist_laws: info.found_match_serverside.fascist_laws + 1,
           substage: substageEnum.enumValues[5],
         })
         .where(eq(match.id, info.id))
@@ -1042,8 +1053,12 @@ export function is_next_power_special(found_match: match_type) {
   if (!found_match.fascist_laws_array) {
     throw new Error("can't access found_match.fascist_laws_array");
   }
+  console.log("fascist_law_index", fascist_law_index);
+  console.log("Fash laws array", found_match.fascist_laws_array);
+
   const exact_law = found_match.fascist_laws_array[fascist_law_index];
   if (!exact_law) {
+    console.log("Fash laws array", found_match.fascist_laws_array);
     throw new Error("can't access exact_law");
   }
   const isSpecial_law = exact_law === "None" ? false : true;
