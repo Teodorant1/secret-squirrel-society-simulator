@@ -134,6 +134,7 @@ async function set_up_next_election(
     .update(match)
     .set({
       president: actual_candidate,
+      chancellor: "",
       stage: stageEnum.enumValues[1],
       substage: substageEnum.enumValues[1],
       waiting_on: actual_candidate,
