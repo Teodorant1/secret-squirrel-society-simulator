@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @next/next/no-img-element */
+
 "use client";
 
 import type React from "react";
@@ -101,12 +101,76 @@ export default function Game_Interface({
     }
     return false;
   }
+
+  function get_badge_list() {
+    const badge_list: { all_mentioned_words: string[]; role: string }[] = [];
+
+    if (match_query.data?.game_info?.player_intel) {
+      for (const intel of match_query.data?.game_info?.player_intel) {
+        const broken_strings = intel.split(" ");
+        if (
+          broken_strings.includes(match_query.data.game_info.hitler_role_name)
+        ) {
+          const badge = {
+            all_mentioned_words: broken_strings,
+            role: match_query.data.game_info.hitler_role_name,
+          };
+          badge_list.push(badge);
+        }
+        if (
+          broken_strings.includes(
+            match_query.data.game_info.president_role_name,
+          )
+        ) {
+          const badge = {
+            all_mentioned_words: broken_strings,
+            role: match_query.data.game_info.president_role_name,
+          };
+          badge_list.push(badge);
+        }
+        if (
+          broken_strings.includes(
+            match_query.data.game_info.chancellor_role_name,
+          )
+        ) {
+          const badge = {
+            all_mentioned_words: broken_strings,
+            role: match_query.data.game_info.chancellor_role_name,
+          };
+          badge_list.push(badge);
+        }
+
+        if (
+          broken_strings.includes(
+            match_query.data.game_info.fascist_faction_name,
+          )
+        ) {
+          const badge = {
+            all_mentioned_words: broken_strings,
+            role: match_query.data.game_info.fascist_faction_name,
+          };
+          badge_list.push(badge);
+        }
+        if (
+          broken_strings.includes(
+            match_query.data.game_info.liberal_faction_name,
+          )
+        ) {
+          const badge = {
+            all_mentioned_words: broken_strings,
+            role: match_query.data.game_info.liberal_faction_name,
+          };
+          badge_list.push(badge);
+        }
+      }
+      return badge_list;
+    }
+  }
   type ExecutivePowerButtonProps = {
     player: string;
     executivePower: string;
     onUsePower: (targetPlayer: string) => void;
   };
-
   function ExecutivePowerButton({
     player,
     executivePower,
@@ -164,7 +228,6 @@ export default function Game_Interface({
 
   async function refetch_n_show() {
     await match_query.refetch();
-
     console.log(match_query.data);
   }
 
@@ -459,8 +522,20 @@ export default function Game_Interface({
       player_password: playerPassword,
     });
   };
+  type Badge = {
+    all_mentioned_words: string[];
+    role: string;
+  };
 
-  function getPlayer_badge(agent: string) {
+  function filterBadgesByMentionedWord(
+    badge_list: Badge[],
+    word: string,
+  ): Badge[] {
+    return badge_list.filter((badge) =>
+      badge.all_mentioned_words.includes(word),
+    );
+  }
+  function getPlayer_badge(agent: string, badge_list: Badge[]) {
     if (agent === match_query.data?.game_info?.chancellor) {
       return match_query.data?.game_info?.chancellor_role_name;
     }
@@ -478,6 +553,92 @@ export default function Game_Interface({
     }
 
     return "";
+  }
+  function getPlayer_badge1(agent: string, badge_list: Badge[]) {
+    const this_player_badges = filterBadgesByMentionedWord(badge_list, agent);
+
+    const checklist = {
+      isHitler: false,
+      isLiberal: false,
+      isFascist: false,
+      isPresident: false,
+      isChancellor: false,
+      // isDead: false,
+    };
+
+    if (agent === match_query.data?.game_info?.chancellor) {
+      checklist.isChancellor = true;
+    }
+    if (
+      agent === match_query.data?.game_info?.president &&
+      agent === match_query.data?.game_info?.last_President
+    ) {
+      checklist.isPresident = true;
+    }
+    // if (agent === match_query.data?.game_info?.president) {
+    //   checklist.isPresident = true;
+    // }
+    // if (!match_query.data?.game_info?.player_order.includes(agent)) {
+    //   checklist.isDead = true;
+    // }
+
+    for (const badge of this_player_badges) {
+      if (badge.role === match_query.data?.game_info?.fascist_faction_name) {
+        checklist.isFascist = true;
+      }
+      if (badge.role === match_query.data?.game_info?.liberal_faction_name) {
+        checklist.isLiberal = true;
+      }
+    }
+
+    return checklist;
+  }
+
+  function PlayerBadgeImage({
+    agent,
+    // badge_list,
+  }: {
+    agent: string;
+    // badge_list: Badge[];
+  }) {
+    const badge_list = get_badge_list();
+    if (!badge_list) {
+      throw new Error("BadgeList is null");
+    }
+
+    const roleImages = getPlayer_badge1(agent, badge_list);
+    if (!roleImages) return null;
+
+    const imageMap: Record<keyof typeof roleImages, string> = {
+      isHitler: match_query.data?.game_info?.hitler_role_image_url ?? "",
+      isLiberal: match_query.data?.game_info?.liberal_faction_image_url ?? "",
+      isFascist: match_query.data?.game_info?.fascist_faction_image_url ?? "",
+      isPresident: match_query.data?.game_info?.president_role_image_url ?? "",
+      isChancellor:
+        match_query.data?.game_info?.chancellor_role_image_url ?? "",
+      // isDead: match_query.data?.game_info?.chancellor_role_image_url ?? "",
+    };
+
+    const visibleRoles = Object.entries(roleImages).filter(([key, value]) => {
+      if (!value) return false;
+      if (key === "isFascist" && roleImages.isHitler) return false;
+      return true;
+    });
+
+    if (visibleRoles.length === 0) return null;
+
+    return (
+      <div className="mt-2 flex flex-wrap items-center gap-2 rounded border border-blue-500/30 p-2">
+        {visibleRoles.map(([key]) => {
+          const imageSrc = imageMap[key as keyof typeof roleImages];
+          if (!imageSrc) return null;
+
+          return (
+            <img key={key} src={imageSrc} alt={key} className="h-10 md:h-20" />
+          );
+        })}
+      </div>
+    );
   }
 
   function InfoBox() {
@@ -749,10 +910,9 @@ export default function Game_Interface({
             "Game hasn't started yet!"
           ) : (
             <div>
-              {match_query.data?.game_info?.original_players_array &&
-                match_query.data?.game_info?.original_players_array.length >
-                  0 &&
-                match_query.data?.game_info?.original_players_array.map(
+              {match_query.data?.game_info?.player_order &&
+                match_query.data?.game_info?.player_order.length > 0 &&
+                match_query.data?.game_info?.player_order.map(
                   (agent, index) => (
                     <motion.div
                       key={index}
@@ -804,7 +964,8 @@ export default function Game_Interface({
                                 </button>
                               )}
                             </span>
-                            {getPlayer_badge(agent)}
+                            {/* {getPlayer_badge(agent)} */}
+                            <PlayerBadgeImage agent={agent} />
                           </div>
                         </div>
                       </Card>

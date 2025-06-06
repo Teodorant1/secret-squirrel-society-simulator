@@ -505,11 +505,15 @@ export async function start_game(
       players: true,
     },
   });
-
+  if (!current_match) {
+    throw new Error("can't access current_match");
+  }
   const current_match_players = current_match?.players;
 
   const ideology_intel_array: string[] = [];
-  const liberal_ideology_intel_array: string[] = ["You are a liberal"];
+  const liberal_intel_nugget =
+    "You are a " + current_match.liberal_faction_name;
+  const liberal_ideology_intel_array: string[] = [liberal_intel_nugget];
 
   const hitler_is_intel =
     current_match?.hitler + " is " + current_match?.hitler_role_name;
@@ -2155,7 +2159,7 @@ export async function GetPlayerStartedGames(username: string) {
   const startedGames = await db.query.match.findMany({
     where: and(
       eq(match.has_started, true),
-      eq(match.isOver, false),
+      // eq(match.isOver, false),
       // Only include matches where at least one player matches this username
       // But since we can't filter `with.players` directly, we will filter afterward
       // This gets all started matches and their players

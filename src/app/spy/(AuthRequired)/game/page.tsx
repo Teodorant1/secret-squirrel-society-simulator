@@ -62,11 +62,13 @@ export default function CustomizePage() {
     "Party Chairman",
   );
   const [FascistLogo, setFascistLogo] = useState<string | null>(
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Ingsoc_Oceania_flag_1984.svg/2560px-Ingsoc_Oceania_flag_1984.svg.png",
+    "https://scontent.fbeg1-1.fna.fbcdn.net/v/t39.30808-6/483880050_1416029293148067_3659740942524122031_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=aa7b47&_nc_ohc=hjcvy3prGAcQ7kNvwHklnVR&_nc_oc=AdmABF2CqX9zVF8BUeESogo6ele3SLo0By7mFgo1l4PKApG8M0V5GnQRFYyV1HBMxHE&_nc_zt=23&_nc_ht=scontent.fbeg1-1.fna&_nc_gid=SPz0rykhZ9WhqALblPFO3Q&oh=00_AfPUqv8Umf6AjJOPVUhIJxiDMnC3FIPhGzhUtKEP9CaRbg&oe=68493191",
   );
   const [hitler_role_image_url, sethitler_role_image_url] = useState<
     string | null
-  >("https://i.icanvas.com/3607?d=2&sh=h&t=1734534059");
+  >(
+    "https://psychologyinrussia.com/upload/iblock/e26/k3v3c5fattu6vflfq0ya7hnxqrlsyz51/DridP.jpg",
+  );
 
   const [presidentRoleName, setpresidentRoleName] = useState<string | null>(
     "President",
