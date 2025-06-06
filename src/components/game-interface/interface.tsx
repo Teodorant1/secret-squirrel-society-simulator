@@ -32,6 +32,7 @@ import {
 } from "@/random-functions/frontend/frontend1";
 import { stageEnum, substageEnum } from "@/server/db/schema";
 import { HackerError } from "../hacker-error";
+import { match } from "assert";
 
 // nomination , election , ?? potential anarchy , 1st law selection , 2nd law selection , optional_skip
 
@@ -47,8 +48,22 @@ export default function Game_Interface({
   match_id,
 }: Game_Interface_Props) {
   const { data: session } = useSession();
-  function show_ongoing_election() {
+  function am_i_alive() {
     if (!session) {
+      return false;
+    }
+    if (
+      match_query.data?.game_info?.player_order.includes(session?.user.username)
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  function show_ongoing_election() {
+    const is_alive = am_i_alive();
+
+    if (!session || is_alive !== true) {
       return false;
     }
 
@@ -76,8 +91,12 @@ export default function Game_Interface({
     }
     return false;
   }
-  function show_executive_button() {
-    if (match_query.data?.game_info?.executive_power_enabled) {
+  function show_executive_button(target: string) {
+    if (
+      match_query.data?.game_info?.executive_power_enabled &&
+      match_query.data.game_info.president === session?.user.username &&
+      target !== session?.user.username
+    ) {
       return true;
     }
     return false;
@@ -98,7 +117,7 @@ export default function Game_Interface({
         onClick={() => onUsePower(player)}
         className="m-2 bg-blue-700 p-2 text-white"
       >
-        Power: {executivePower} {" --> "} {player}
+        {executivePower} {">"} {player}
       </button>
     );
   }
@@ -232,7 +251,7 @@ export default function Game_Interface({
       match_id: match_id ?? "",
       match_password: playerPassword,
       player_password: match_password,
-      voting_yes: false,
+      voting_yes: voting_yes,
     });
   };
   const handle_special_power = api.match.handle_special_power.useMutation({
@@ -454,20 +473,11 @@ export default function Game_Interface({
     if (agent === match_query.data?.game_info?.president) {
       return match_query.data?.game_info?.president_role_name + " Candidate";
     }
+    if (!match_query.data?.game_info?.player_order.includes(agent)) {
+      return "Dead";
+    }
 
     return "";
-  }
-
-  function am_i_alive() {
-    if (!session) {
-      return false;
-    }
-    if (
-      match_query.data?.game_info?.player_order.includes(session?.user.username)
-    ) {
-      return true;
-    }
-    return false;
   }
 
   function InfoBox() {
@@ -484,6 +494,15 @@ export default function Game_Interface({
         />
         <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold">
           <Info className="h-5 w-5 text-blue-400" />
+          {match_query.data && match_query.data.game_info.isOver === true && (
+            <GlitchText
+              text={
+                match_query.data.game_info.result ??
+                "Game is over but we don't know the winner"
+              }
+              className="font-mono"
+            />
+          )}
           <GlitchText text={"GAME STATUS//"} className="font-mono" />
           <motion.div
             className="ml-2 h-1.5 w-1.5 rounded-full bg-blue-400"
@@ -498,7 +517,6 @@ export default function Game_Interface({
             label={`${gameInfo.president_role_name}:`}
             value={gameInfo.president}
           />
-
           <InfoLine label={`Players in Lobby:`} value={gameInfo.player_size} />
           <InfoLine
             label={`${gameInfo.chancellor_role_name}:`}
@@ -520,13 +538,23 @@ export default function Game_Interface({
             label={`${gameInfo.fascist_faction_name} Laws:`}
             value={gameInfo.fascist_laws_number}
           />
-          {gameInfo.veto_power_unlocked && (
-            <InfoLine
-              label={"Veto Power:"}
-              value="Unlocked"
-              className="text-red-500"
-            />
-          )}
+          {gameInfo.veto_power_unlocked === true &&
+            gameInfo.chancellor_has_activated_veto === true && (
+              <div>
+                <InfoLine
+                  label={"Veto Power:"}
+                  value={
+                    gameInfo.veto_power_unlocked === true ? "True" : "False"
+                  }
+                  className="text-red-500"
+                />
+                <InfoLine
+                  label={"Veto Session Finished:"}
+                  value={gameInfo.veto_session_over === true ? "true" : "false"}
+                  className="text-red-500"
+                />
+              </div>
+            )}
           <InfoLine
             label={"Failed Elections:"}
             value={gameInfo.failed_elections}
@@ -536,6 +564,15 @@ export default function Game_Interface({
           <InfoLine label={"Stage:"} value={gameInfo.stage} />
           <InfoLine label={"Substage:"} value={gameInfo.substage} />
           <InfoLine label={"Waiting On:"} value={gameInfo.waiting_on} />
+          {gameInfo.result && (
+            <InfoLine label={"Result:"} value={gameInfo.result + " victory "} />
+          )}
+          {gameInfo.isOver === true && (
+            <InfoLine
+              label={"Is Over:"}
+              value={gameInfo.isOver === true ? "True" : "False"}
+            />
+          )}
         </div>
       </Card>
     );
@@ -745,7 +782,7 @@ export default function Game_Interface({
                                     ELIMINATED
                                   </div>
                                 )}
-                              {show_executive_button() && (
+                              {show_executive_button(agent) && (
                                 <ExecutivePowerButton
                                   player={agent}
                                   executivePower={
@@ -888,14 +925,14 @@ export default function Game_Interface({
           {" "}
           VETO THE RESOLUTION{" "}
         </button>{" "}
-        <button
+        {/* <button
           onClick={() => {
             handle_handle_veto(false);
           }}
           className="m-3 bg-blue-700 p-3"
         >
           DON{"'"}T VETO THE RESOLUTION{" "}
-        </button>
+        </button> */}
       </>
     );
   }
@@ -927,32 +964,30 @@ export default function Game_Interface({
           />
         </h3>
         <div className="space-y-2">
-          {match_query.data?.game_info?.this_player?.intel.map(
-            (item, index) => (
-              <motion.div
-                key={index}
-                whileHover={{
-                  scale: 1.01,
-                  transition: { duration: 0.2 },
-                }}
-                className="group"
-              >
-                <Card className="relative overflow-hidden border-blue-500/20 bg-black/70">
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent"
-                    initial={{ x: "100%" }}
-                    whileHover={{ x: "0%" }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                  />
-                  <div className="relative p-4">
-                    <div className="font-mono text-sm text-blue-300/80">
-                      {item}
-                    </div>
+          {match_query.data?.game_info?.player_intel.map((item, index) => (
+            <motion.div
+              key={index}
+              whileHover={{
+                scale: 1.01,
+                transition: { duration: 0.2 },
+              }}
+              className="group"
+            >
+              <Card className="relative overflow-hidden border-blue-500/20 bg-black/70">
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent"
+                  initial={{ x: "100%" }}
+                  whileHover={{ x: "0%" }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                />
+                <div className="relative p-4">
+                  <div className="font-mono text-sm text-blue-300/80">
+                    {item}
                   </div>
-                </Card>
-              </motion.div>
-            ),
-          )}
+                </div>
+              </Card>
+            </motion.div>
+          ))}
         </div>
       </Card>
     );
@@ -992,7 +1027,7 @@ export default function Game_Interface({
         </Progress>
         <div className="mt-4 space-y-2">
           {milestones.map((milestone, index) => {
-            const isActive = index + 1 < progress;
+            const isActive = index + 1 <= progress;
 
             return (
               <motion.div
@@ -1008,8 +1043,9 @@ export default function Game_Interface({
                   {/* Gradient hover effect only appears on hover */}
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
                   <div className="relative">
-                    <p className="font-mono text-sm text-blue-300/80">
-                      {milestone}+{isActive ? " ACTIVATED!" : ""}
+                    <p className="font-mono text-sm text-white">
+                      {milestone}
+                      {isActive ? " ACTIVATED " : ""}
                     </p>
                   </div>
                 </Card>
@@ -1063,12 +1099,14 @@ export default function Game_Interface({
           />
         </motion.div>
         <button
+          className="m-5 bg-black p-5 text-white"
           onClick={() => {
             void refetch_n_show();
           }}
         >
           REFETCH AND PRINT
         </button>
+
         {ShowStartButton() && (
           <motion.div
             className="flex flex-col justify-center gap-4 sm:flex-row"
@@ -1142,7 +1180,6 @@ export default function Game_Interface({
           )}
 
           {match_query.data && show_ongoing_election() && <VotingCard />}
-          {match_query.data && <PreviousElectionsCard />}
         </motion.div>
         {match_query.data?.game_info?.fascist_laws &&
           match_query.data?.game_info?.liberal_laws && (
@@ -1169,6 +1206,7 @@ export default function Game_Interface({
               />
             </div>
           )}
+        {match_query.data && <PreviousElectionsCard />}
 
         <Card className="relative overflow-hidden border-blue-500/30 bg-black/50 p-6 backdrop-blur-sm">
           {/* Terminal animation */}

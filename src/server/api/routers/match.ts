@@ -2,7 +2,6 @@ import { z } from "zod";
 import {
   GetAllRelevantGames,
   nominate_chancellor,
-  tally_vote_results,
   start_game,
   get_info_on_game,
   join_game,
@@ -15,6 +14,42 @@ import {
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
 export const MatchRouter = createTRPCRouter({
+  // testing_peek_test: protectedProcedure
+  //   .input(
+  //     z.object({
+  //       match_id: z.string(),
+  //     }),
+  //   )
+  //   .mutation(async ({ ctx, input }) => {
+  //     try {
+  //       // const game = await start_game(input.match_id, input.player_id);
+
+  //       const result = await ctx.db.transaction(async (tx) => {
+  //         return await test_peek(tx, input.match_id);
+  //       });
+
+  //       return {
+  //         result: result,
+  //         error: false,
+  //         error_description: null,
+  //       };
+  //     } catch (error) {
+  //       console.error("Error in discard_policy mutation:", error);
+  //       if (error instanceof Error) {
+  //         console.log(error.message);
+  //         return {
+  //           error: true,
+  //           error_description: error.message,
+  //           result: null,
+  //         };
+  //       }
+  //       return {
+  //         error: true,
+  //         error_description: "Something went wrong. Please try again.",
+  //         result: null,
+  //       };
+  //     }
+  //   }),
   discard_policy: protectedProcedure
     .input(
       z.object({
@@ -279,8 +314,8 @@ export const MatchRouter = createTRPCRouter({
           );
         });
 
-        const current_date = new Date();
-        console.error("current_date", current_date);
+        // const current_date = new Date();
+        // console.error("current_date", current_date);
 
         return {
           error: false,

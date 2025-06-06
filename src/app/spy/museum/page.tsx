@@ -62,9 +62,9 @@ export default function MuseumPage() {
               intensity="normal"
             />
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <div className="text-lg text-muted-foreground">
             <TerminalText text="Secure. Contain. Protect. - Level 4 Clearance Required" />
-          </p>
+          </div>
           <div className="mt-4 flex items-center justify-center gap-2">
             <Badge variant="outline" className="bg-amber-900/20 text-amber-500">
               <Lock className="mr-1 h-3 w-3" />

@@ -138,6 +138,11 @@ async function set_up_next_election(
       stage: stageEnum.enumValues[1],
       substage: substageEnum.enumValues[1],
       waiting_on: actual_candidate,
+      executive_power: "",
+      executive_power_active: false,
+      veto_session_over: false,
+      chancellor_has_activated_veto: false,
+      president_accepted_veto: false,
     })
     .where(eq(match.id, found_match.id))
     .returning();
@@ -242,10 +247,9 @@ export async function nominate_chancellor(
     throw new Error("You ain't the president!");
   }
 
-  if (
-    CanBeNominated_for_chancellor(candidate, info) &&
-    info.found_match_serverside
-  ) {
+  const nombinateAble = CanBeNominated_for_chancellor(candidate, info);
+
+  if (nombinateAble === true && info.found_match_serverside) {
     await db
       .update(election)
       .set({ chancellor_candidate: candidate })
@@ -595,6 +599,119 @@ export async function start_game(
   // },
   // );
 }
+
+// export async function test_peek(
+//   db: Transaction,
+//   match_id: string,
+//   // username: string,
+//   // match_password: string,
+//   // player_password: string,
+// ) {
+//   const IS_PRODUCTION = process.env.IS_PRODUCTION;
+//   if (IS_PRODUCTION === "true") {
+//     return 0;
+//   }
+
+//   const actual_new_match = await db.query.match.findFirst({
+//     where: eq(match.id, match_id),
+//   });
+
+//   if (!actual_new_match?.deck[0]) {
+//     throw new Error("Can't access actual_new_match?.deck[0]");
+//   }
+//   if (!actual_new_match?.deck[1]) {
+//     throw new Error("Can't access actual_new_match?.deck[1]");
+//   }
+//   if (!actual_new_match?.deck[2]) {
+//     throw new Error("Can't access actual_new_match?.deck[2]");
+//   }
+
+//   const top_of_the_deck = [
+//     actual_new_match?.deck[0],
+//     actual_new_match?.deck[1],
+//     actual_new_match?.deck[2],
+//   ];
+
+//   if (!top_of_the_deck) {
+//     throw new Error("can't pull 3 cards from top_of_the_deck");
+//   }
+
+//   console.log("top_of_the_deck", top_of_the_deck);
+
+//   const top_three_card_intel =
+//     "The 3 policies at the top are as follows: " +
+//     (actual_new_match.deck[0] === "liberal"
+//       ? actual_new_match.liberal_faction_name + " policy"
+//       : actual_new_match.fascist_faction_name + " policy") +
+//     " , " +
+//     (actual_new_match.deck[1] === "liberal"
+//       ? actual_new_match.liberal_faction_name + " policy"
+//       : actual_new_match.fascist_faction_name + " policy") +
+//     " , " +
+//     (actual_new_match.deck[2] === "liberal"
+//       ? actual_new_match.liberal_faction_name + " policy"
+//       : actual_new_match.fascist_faction_name + " policy");
+
+//   console.log("top_three_card_intel", top_three_card_intel);
+
+//   const president_player = actual_new_match.president;
+//   console.log("top_three_card_intel", top_three_card_intel);
+
+//   const open_source_intel = actual_new_match.open_source_intel;
+//   console.log("open_source_intel", open_source_intel);
+
+//   const nugget_of_intel =
+//     actual_new_match.president_role_name +
+//     president_player +
+//     " has looked at the top 3 cards of the policy deck .";
+//   console.log("nugget_of_intel", nugget_of_intel);
+
+//   const new_open_source_intel = [...open_source_intel, nugget_of_intel];
+//   console.log("new_open_source_intel", new_open_source_intel);
+
+//   await db
+//     .update(match)
+//     .set({
+//       open_source_intel: new_open_source_intel,
+//     })
+//     .where(eq(match.id, actual_new_match.id));
+
+//   const president_player_object = await db.query.player.findFirst({
+//     where: and(
+//       eq(player.match, actual_new_match.id),
+//       eq(player.username, president_player),
+//     ),
+//   });
+//   if (!president_player_object?.intel) {
+//     throw new Error("cannot access president_player_object?.intel");
+//   }
+//   const president_player_object_intel = president_player_object.intel;
+//   const new_intel_array = [
+//     ...president_player_object_intel,
+//     top_three_card_intel,
+//   ];
+
+//   console.log("new_intel_array", new_intel_array);
+
+//   const updated_president_player_object = await db
+//     .update(player)
+//     .set({ intel: new_intel_array })
+//     .where(
+//       and(
+//         eq(player.match, actual_new_match.id),
+//         eq(player.username, president_player),
+//       ),
+//     )
+//     .returning();
+
+//   console.log(
+//     "updated_president_player_object",
+//     updated_president_player_object,
+//   );
+
+//   return 0;
+// }
+
 export async function get_info_on_game(
   db: Transaction,
   match_id: string,
@@ -625,6 +742,8 @@ export async function get_info_on_game(
     where: eq(match.id, match_id),
     with: {
       elections: {
+        orderBy: desc(election.created_at),
+
         with: {
           votes: {
             columns: {
@@ -694,12 +813,22 @@ export async function get_info_on_game(
       ? found_match.president_laws_pile
       : null;
 
+  if (!single_player[0]?.intel) {
+    throw new Error("can't access the intel for the player");
+  }
+
+  const new_intel_array = [
+    ...single_player[0]?.intel,
+    ...found_match.open_source_intel,
+  ];
+
   const state = {
     player_size: found_match.players.length,
     decksize: found_match.deck.length,
     discard_size: found_match.discard_pile.length,
 
     this_player: single_player[0],
+    player_intel: new_intel_array,
     open_source_intel: found_match.open_source_intel,
 
     is_present_in_match: is_present_in_match,
@@ -963,31 +1092,25 @@ export async function discard_policy(
           throw new Error("can't pull 3 cards from top_of_the_deck");
         }
         const top_three_card_intel =
-          "the 3 policies at the top are as follows : " +
-            actual_new_match?.deck[0] ===
-          "liberal"
-            ? actual_new_match.liberal_faction_name
-            : actual_new_match.fascist_faction_name +
-                  " policy " +
-                  " , " +
-                  actual_new_match?.deck[0] ===
-                "liberal"
-              ? actual_new_match.liberal_faction_name
-              : actual_new_match.fascist_faction_name +
-                    " policy " +
-                    " , " +
-                    actual_new_match?.deck[0] ===
-                  "liberal"
-                ? actual_new_match.liberal_faction_name
-                : actual_new_match.fascist_faction_name + " policy " + " , ";
-
-        const new_deck = actual_new_match?.deck.slice(3);
+          "The 3 policies at the top are as follows: " +
+          (actual_new_match.deck[0] === "liberal"
+            ? actual_new_match.liberal_faction_name + " policy"
+            : actual_new_match.fascist_faction_name + " policy") +
+          " , " +
+          (actual_new_match.deck[1] === "liberal"
+            ? actual_new_match.liberal_faction_name + " policy"
+            : actual_new_match.fascist_faction_name + " policy") +
+          " , " +
+          (actual_new_match.deck[2] === "liberal"
+            ? actual_new_match.liberal_faction_name + " policy"
+            : actual_new_match.fascist_faction_name + " policy");
 
         const president_player = actual_new_match.president;
 
         const open_source_intel = actual_new_match.open_source_intel;
         const nugget_of_intel =
           actual_new_match.president_role_name +
+          " " +
           president_player +
           " has looked at the top 3 cards of the policy deck .";
 
@@ -1089,6 +1212,25 @@ export async function handle_veto(
     info.found_match_serverside.substage === substageEnum.enumValues[5] &&
     info.found_match_serverside.president_accepted_veto === false
   ) {
+    const osint_nugget =
+      info.found_match_serverside.chancellor_role_name +
+      " " +
+      username +
+      " wishes to veto the  proposal ";
+
+    const osint_intel_array = info.found_match_serverside.open_source_intel;
+
+    const new_osint_intel_array = [...osint_intel_array, osint_nugget];
+
+    const updated_match = await db
+      .update(match)
+      .set({
+        chancellor_has_activated_veto: voting_yes === true ? true : false,
+        open_source_intel: new_osint_intel_array,
+        // failed_elections: info.found_match_serverside.failed_elections + 1,
+      })
+      .where(eq(match.id, info.found_match_serverside.id))
+      .returning();
   } else if (
     username === info.found_match_serverside?.president &&
     info.found_match_serverside.substage === substageEnum.enumValues[5] &&
@@ -1217,8 +1359,25 @@ export async function handle_special_power(
 
   const power = found_match.executive_power;
   const power_is_active = found_match.executive_power_active;
+
+  if (username !== found_match.president) {
+    throw new Error("You are not the president role, ACCESS DENIED");
+  }
+  console.log(
+    "ARGUMENTS handle_special_power",
+    username,
+    target,
+    power,
+    power_is_active,
+  );
+
+  console.log("power equals Execution", power === "Execution");
+
   if (power && power_is_active && username === found_match.president) {
+    console.log("entering the loop");
     if (power === "InvestigatePlayer") {
+      console.log("attempting InvestigatePlayer");
+
       const Investigated_Player = await db.query.player.findFirst({
         where: and(
           eq(player.match, found_match.id),
@@ -1237,16 +1396,11 @@ export async function handle_special_power(
         throw new Error("can't access Investigated_Player");
       }
       const is_fascist = Investigated_Player?.is_fascist;
-      const intel_nugget =
-        is_fascist === true
-          ? Investigated_Player.username +
-            " is a member of " +
-            found_match.fascist_faction_name +
-            " faction ."
-          : Investigated_Player.username +
-            " is a member of " +
-            found_match.liberal_faction_name +
-            " faction .";
+      const factionName = is_fascist
+        ? found_match.fascist_faction_name
+        : found_match.liberal_faction_name;
+
+      const intel_nugget = `${Investigated_Player.username} is a member of the ${factionName} faction.`;
 
       const el_presidente_intel = el_presidente?.intel;
       if (!el_presidente) {
@@ -1288,73 +1442,80 @@ export async function handle_special_power(
         .where(
           and(eq(player.match, found_match.id), eq(player.username, username)),
         );
-    }
-  } else if (power === "Execution") {
-    const alive_players = found_match.alive_players;
+    } else if (power === "Execution") {
+      console.log("attemping to execute", target);
 
-    const alive_players_after_murder = alive_players.filter(
-      (player) => player !== target,
-    );
+      const alive_players = found_match.alive_players;
 
-    const osint_nugget =
-      found_match.president_role_name + username + " executed " + target;
-
-    const osint_intel_array = found_match.open_source_intel;
-
-    if (!osint_intel_array) {
-      throw new Error(
-        " can't access  osint_intel_array for Investigated_Player executive power",
+      const alive_players_after_murder = alive_players.filter(
+        (player) => player !== target,
       );
+
+      const osint_nugget =
+        found_match.president_role_name +
+        " " +
+        username +
+        " executed " +
+        target;
+
+      const osint_intel_array = found_match.open_source_intel;
+
+      if (!osint_intel_array) {
+        throw new Error(
+          " can't access  osint_intel_array for Investigated_Player executive power",
+        );
+      }
+
+      const new_osint_intel_array = [...osint_intel_array, osint_nugget];
+      const updated_execution_match = await db
+        .update(match)
+        .set({
+          alive_players: alive_players_after_murder,
+          open_source_intel: new_osint_intel_array,
+        })
+        .where(eq(match.id, found_match.id))
+        .returning();
+
+      const actual_updated_execution_match = updated_execution_match[0];
+      if (!actual_updated_execution_match) {
+        throw new Error(
+          "Can't access actual_updated_execution_match in execution submethod ",
+        );
+      }
+
+      const game_is_over = await victory_check(actual_updated_execution_match);
+      if (game_is_over === false) {
+        await set_up_next_election(db, actual_updated_execution_match);
+      }
+    } else if (power === "SpecialElection") {
+      const osint_nugget =
+        found_match.president_role_name +
+        " " +
+        username +
+        " declared a special election and nominated his successor: " +
+        target;
+
+      const osint_intel_array = found_match.open_source_intel;
+
+      if (!osint_intel_array) {
+        throw new Error(
+          " can't access  osint_intel_array for Investigated_Player executive power",
+        );
+      }
+
+      const new_osint_intel_array = [...osint_intel_array, osint_nugget];
+      const updated_match = await db
+        .update(match)
+        .set({ open_source_intel: new_osint_intel_array })
+        .where(eq(match.id, found_match.id));
+
+      await set_up_next_election(db, found_match, true, target);
+      return 0;
     }
-
-    const new_osint_intel_array = [...osint_intel_array, osint_nugget];
-    const updated_execution_match = await db
-      .update(match)
-      .set({
-        alive_players: alive_players_after_murder,
-        open_source_intel: new_osint_intel_array,
-      })
-      .where(eq(match.id, found_match.id))
-      .returning();
-
-    const actual_updated_execution_match = updated_execution_match[0];
-    if (!actual_updated_execution_match) {
-      throw new Error(
-        "Can't access actual_updated_execution_match in execution submethod ",
-      );
-    }
-
-    const game_is_over = await victory_check(actual_updated_execution_match);
-    if (game_is_over === false) {
-      await set_up_next_election(db, actual_updated_execution_match);
-    }
-  } else if (power === "SpecialElection") {
-    const osint_nugget =
-      found_match.president_role_name +
-      username +
-      " declared a special election and nominated his successor: " +
-      target;
-
-    const osint_intel_array = found_match.open_source_intel;
-
-    if (!osint_intel_array) {
-      throw new Error(
-        " can't access  osint_intel_array for Investigated_Player executive power",
-      );
-    }
-
-    const new_osint_intel_array = [...osint_intel_array, osint_nugget];
-    const updated_match = await db
-      .update(match)
-      .set({ open_source_intel: new_osint_intel_array })
-      .where(eq(match.id, found_match.id));
-
-    await set_up_next_election(db, found_match, true, target);
-    return 0;
   } else {
     throw new Error("You went to the wrong neighborhood");
   }
-  await set_up_next_election(db, found_match);
+  // await set_up_next_election(db, found_match);
 
   return 0;
 }
