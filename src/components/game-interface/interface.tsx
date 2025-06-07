@@ -317,6 +317,51 @@ export default function Game_Interface({
       voting_yes: voting_yes,
     });
   };
+
+  // const test_handle_special_power =
+  //   api.match.test_handle_special_power.useMutation({
+  //     onSuccess: async (data) => {
+  //       setIsLoading(false);
+  //       if (data.error === false) {
+  //         setTerminalLines((prev) => [
+  //           ...prev,
+  //           "> test_handle_special_poweraction successful. Welcome to the network.",
+  //         ]);
+  //         await match_query.refetch();
+  //       } else {
+  //         setIsError(true);
+  //         setErrorText(
+  //           data.error_description ?? "An unknown error has occurred.",
+  //         );
+  //         setTerminalLines((prev) => [
+  //           ...prev,
+  //           `> ERROR: ${data.error_description}`,
+  //         ]);
+  //       }
+  //     },
+  //   });
+
+  // const handle_test_handle_special_power = (
+  //   target: string,
+  //   special_power: string,
+  // ) => {
+  //   if (isLoading) return;
+
+  //   setIsLoading(true);
+  //   setIsError(null);
+  //   setTerminalLines((prev) => [
+  //     ...prev,
+  //     `> Processing handle_start_game for ${"username"}...`,
+  //   ]);
+  //   test_handle_special_power.mutate({
+  //     match_id: match_id ?? "",
+  //     match_password: playerPassword,
+  //     player_password: match_password,
+  //     target: target,
+  //     special_power: special_power,
+  //   });
+  // };
+
   const handle_special_power = api.match.handle_special_power.useMutation({
     onSuccess: async (data) => {
       setIsLoading(false);
@@ -575,9 +620,9 @@ export default function Game_Interface({
     ) {
       checklist.isPresident = true;
     }
-    // if (agent === match_query.data?.game_info?.president) {
-    //   checklist.isPresident = true;
-    // }
+    if (agent === match_query.data?.game_info?.president) {
+      checklist.isPresident = true;
+    }
     // if (!match_query.data?.game_info?.player_order.includes(agent)) {
     //   checklist.isDead = true;
     // }
@@ -589,18 +634,15 @@ export default function Game_Interface({
       if (badge.role === match_query.data?.game_info?.liberal_faction_name) {
         checklist.isLiberal = true;
       }
+      if (badge.role === match_query.data?.game_info?.hitler_role_name) {
+        checklist.isHitler = true;
+      }
     }
 
     return checklist;
   }
 
-  function PlayerBadgeImage({
-    agent,
-    // badge_list,
-  }: {
-    agent: string;
-    // badge_list: Badge[];
-  }) {
+  function PlayerBadgeImage({ agent }: { agent: string }) {
     const badge_list = get_badge_list();
     if (!badge_list) {
       throw new Error("BadgeList is null");
@@ -609,6 +651,7 @@ export default function Game_Interface({
     const roleImages = getPlayer_badge1(agent, badge_list);
     if (!roleImages) return null;
 
+    // Correct spelling and structure
     const imageMap: Record<keyof typeof roleImages, string> = {
       isHitler: match_query.data?.game_info?.hitler_role_image_url ?? "",
       isLiberal: match_query.data?.game_info?.liberal_faction_image_url ?? "",
@@ -616,12 +659,13 @@ export default function Game_Interface({
       isPresident: match_query.data?.game_info?.president_role_image_url ?? "",
       isChancellor:
         match_query.data?.game_info?.chancellor_role_image_url ?? "",
-      // isDead: match_query.data?.game_info?.chancellor_role_image_url ?? "",
+      // isDead: "", // Optional: no image if not used
     };
 
+    // Ensure fascist is skipped if hitler is true
     const visibleRoles = Object.entries(roleImages).filter(([key, value]) => {
       if (!value) return false;
-      if (key === "isFascist" && roleImages.isHitler) return false;
+      // if (key === "isFascist" && roleImages.isHitler) return false;
       return true;
     });
 
@@ -634,7 +678,12 @@ export default function Game_Interface({
           if (!imageSrc) return null;
 
           return (
-            <img key={key} src={imageSrc} alt={key} className="h-10 md:h-20" />
+            <img
+              key={key}
+              src={imageSrc}
+              alt={key}
+              className="md:50 w-25 h-10 md:h-20"
+            />
           );
         })}
       </div>
@@ -726,7 +775,12 @@ export default function Game_Interface({
           <InfoLine label={"Substage:"} value={gameInfo.substage} />
           <InfoLine label={"Waiting On:"} value={gameInfo.waiting_on} />
           {gameInfo.result && (
-            <InfoLine label={"Result:"} value={gameInfo.result + " victory "} />
+            <InfoLine
+              label={"Result:"}
+              value={
+                gameInfo.result + (gameInfo.result === "TBA" ? "" : " victory ")
+              }
+            />
           )}
           {gameInfo.isOver === true && (
             <InfoLine
@@ -1266,6 +1320,15 @@ export default function Game_Interface({
           }}
         >
           REFETCH AND PRINT
+        </button> */}
+
+        {/* <button
+          className="m-5 bg-black p-5 text-white"
+          onClick={() => {
+            handle_test_handle_special_power("testuser1", "Execution");
+          }}
+        >
+        TEST SPECIAL POWER
         </button> */}
 
         {ShowStartButton() && (

@@ -283,6 +283,8 @@ export async function victory_check(found_match: match_type) {
   if (found_match.liberal_laws === undefined) {
     throw new Error("found_match.liberal_laws doesn't exist");
   }
+
+  console.log("checking victory");
   const hitler_is_alive = found_match.alive_players?.includes(hitler);
   if (hitler_is_alive === false || found_match.liberal_laws > 6) {
     //liberals win
@@ -296,6 +298,7 @@ export async function victory_check(found_match: match_type) {
       })
       .where(eq(match.id, found_match.id))
       .returning();
+    console.log("liberal victory");
 
     return true;
   }
@@ -316,9 +319,11 @@ export async function victory_check(found_match: match_type) {
       })
       .where(eq(match.id, found_match.id))
       .returning();
+    console.log("fascist victory");
 
     return true;
   }
+  console.log("no one has won");
   return false;
 }
 
@@ -1068,7 +1073,7 @@ export async function discard_policy(
       // }
 
       const results = is_next_power_special(actual_new_match);
-      if (results.isSpecial_law === false) {
+      if (results.isSpecial_law === false || results.exact_law === "Victory!") {
         const game_is_over = await victory_check(actual_new_match);
         if (game_is_over === false) {
           await set_up_next_election(db, actual_new_match);
@@ -1181,8 +1186,6 @@ export function is_next_power_special(found_match: match_type) {
   if (!found_match.fascist_laws_array) {
     throw new Error("can't access found_match.fascist_laws_array");
   }
-  console.log("fascist_law_index", fascist_law_index);
-  console.log("Fash laws array", found_match.fascist_laws_array);
 
   const exact_law = found_match.fascist_laws_array[fascist_law_index];
   if (!exact_law) {
@@ -1295,6 +1298,12 @@ export async function handle_veto(
           last_regular_president: commit_anarchy
             ? ""
             : actual_updated_match.last_regular_president,
+
+          executive_power: "",
+          executive_power_active: false,
+          veto_session_over: false,
+          chancellor_has_activated_veto: false,
+          president_accepted_veto: false,
         })
         .where(eq(match.id, actual_updated_match.id))
         .returning();
@@ -1332,6 +1341,37 @@ export async function handle_veto(
   }
   return 0;
 }
+
+export async function test_handle_special_power(
+  db: Transaction,
+  special_power: string,
+  found_match_id: string,
+  username: string,
+  target: string,
+  player_password: string,
+  match_password: string,
+) {
+  await db
+    .update(match)
+    .set({ executive_power: special_power, executive_power_active: true })
+    .where(eq(match.id, found_match_id));
+
+  const result = await handle_special_power(
+    db,
+    found_match_id,
+    username,
+    target,
+    player_password,
+    match_password,
+  );
+
+  // const mutated_match = await db.query.match.findFirst({
+  //   where: eq(match.id, found_match_id),
+  // });
+
+  // console.log("mutated_match", mutated_match);
+}
+
 export async function handle_special_power(
   db: Transaction,
   found_match_id: string,
@@ -1364,24 +1404,14 @@ export async function handle_special_power(
   const power = found_match.executive_power;
   const power_is_active = found_match.executive_power_active;
 
+  console.log("arguments", power, power_is_active, target);
+
   if (username !== found_match.president) {
     throw new Error("You are not the president role, ACCESS DENIED");
   }
-  console.log(
-    "ARGUMENTS handle_special_power",
-    username,
-    target,
-    power,
-    power_is_active,
-  );
-
-  console.log("power equals Execution", power === "Execution");
 
   if (power && power_is_active && username === found_match.president) {
-    console.log("entering the loop");
     if (power === "InvestigatePlayer") {
-      console.log("attempting InvestigatePlayer");
-
       const Investigated_Player = await db.query.player.findFirst({
         where: and(
           eq(player.match, found_match.id),
@@ -1454,6 +1484,8 @@ export async function handle_special_power(
       const alive_players_after_murder = alive_players.filter(
         (player) => player !== target,
       );
+
+      console.log("alive_players_after_murder", alive_players_after_murder);
 
       const osint_nugget =
         found_match.president_role_name +

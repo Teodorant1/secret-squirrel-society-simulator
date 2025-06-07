@@ -10,14 +10,19 @@ import {
   discard_policy,
   handle_special_power,
   handle_veto,
+  test_handle_special_power,
 } from "@/random-functions/backend/backend1";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
 export const MatchRouter = createTRPCRouter({
-  // testing_peek_test: protectedProcedure
+  // test_handle_special_power: protectedProcedure
   //   .input(
   //     z.object({
   //       match_id: z.string(),
+  //       match_password: z.string(),
+  //       player_password: z.string(),
+  //       target: z.string(),
+  //       special_power: z.string(),
   //     }),
   //   )
   //   .mutation(async ({ ctx, input }) => {
@@ -25,7 +30,15 @@ export const MatchRouter = createTRPCRouter({
   //       // const game = await start_game(input.match_id, input.player_id);
 
   //       const result = await ctx.db.transaction(async (tx) => {
-  //         return await test_peek(tx, input.match_id);
+  //         return await test_handle_special_power(
+  //           tx,
+  //           input.special_power,
+  //           input.match_id,
+  //           ctx.session.user.username,
+  //           input.target,
+  //           input.player_password,
+  //           input.match_password,
+  //         );
   //       });
 
   //       return {
