@@ -219,11 +219,11 @@ export default function Game_Interface({
       match_password: match_password,
       player_password: playerPassword,
     },
-    // {
-    //   refetchOnWindowFocus: true,
-    //   refetchOnMount: true,
-    //   refetchInterval: 10000,
-    // },
+    {
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+      refetchInterval: 10000,
+    },
   );
 
   async function refetch_n_show() {
@@ -1259,14 +1259,14 @@ export default function Game_Interface({
             typingSpeed={20}
           />
         </motion.div>
-        <button
+        {/* <button
           className="m-5 bg-black p-5 text-white"
           onClick={() => {
             void refetch_n_show();
           }}
         >
           REFETCH AND PRINT
-        </button>
+        </button> */}
 
         {ShowStartButton() && (
           <motion.div
