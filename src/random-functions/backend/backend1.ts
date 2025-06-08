@@ -11,6 +11,7 @@ import {
   vote,
   type MatchWithPlayers,
   cronjob_Runs,
+  created_match_statistic,
 } from "@/server/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { CanBeNominated_for_chancellor } from "../frontend/frontend1";
@@ -599,8 +600,13 @@ export async function start_game(
       },
     },
   });
+  if (final_result) {
+    await db.insert(created_match_statistic).values({
+      creator: final_result?.creator_owner,
+      players: final_result.alive_players,
+    });
+  }
 
-  console.log("final_result", final_result);
   // },
   // {
   //   isolationLevel: "read committed",

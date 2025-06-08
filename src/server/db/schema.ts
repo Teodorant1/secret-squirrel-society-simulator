@@ -53,6 +53,18 @@ export const substageEnum = pgEnum("substage", [
   "game_over",
 ]);
 
+export const created_match_statistic = createTable("created_match_statistic", {
+  Date: timestamp("Date", { withTimezone: true })
+    .primaryKey()
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  creator: varchar("creator", { length: 255 }).notNull(),
+  players: varchar("players", { length: 3000 })
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
+});
+
 export const match = createTable("match", {
   id: varchar("id", { length: 255 })
     .notNull()
