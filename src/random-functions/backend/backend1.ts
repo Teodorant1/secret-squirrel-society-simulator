@@ -272,7 +272,7 @@ export async function nominate_chancellor(
   }
   return "op success";
 }
-export async function victory_check(found_match: match_type) {
+export async function victory_check(db: Transaction, found_match: match_type) {
   if (!found_match.id) {
     throw Error("Can't access deck or match perhaps");
   }
@@ -1034,7 +1034,7 @@ export async function discard_policy(
       if (!actual_new_match) {
         throw new Error("can't access actual_new_match");
       }
-      const game_is_over = await victory_check(actual_new_match);
+      const game_is_over = await victory_check(db, actual_new_match);
       if (game_is_over === false) {
         await set_up_next_election(db, actual_new_match);
       }
@@ -1074,7 +1074,7 @@ export async function discard_policy(
 
       const results = is_next_power_special(actual_new_match);
       if (results.isSpecial_law === false || results.exact_law === "Victory!") {
-        const game_is_over = await victory_check(actual_new_match);
+        const game_is_over = await victory_check(db, actual_new_match);
         if (game_is_over === false) {
           await set_up_next_election(db, actual_new_match);
         }
@@ -1189,7 +1189,6 @@ export function is_next_power_special(found_match: match_type) {
 
   const exact_law = found_match.fascist_laws_array[fascist_law_index];
   if (!exact_law) {
-    console.log("Fash laws array", found_match.fascist_laws_array);
     throw new Error("can't access exact_law");
   }
   const isSpecial_law = exact_law === "None" ? false : true;
@@ -1519,7 +1518,10 @@ export async function handle_special_power(
         );
       }
 
-      const game_is_over = await victory_check(actual_updated_execution_match);
+      const game_is_over = await victory_check(
+        db,
+        actual_updated_execution_match,
+      );
       if (game_is_over === false) {
         await set_up_next_election(db, actual_updated_execution_match);
       }
@@ -1739,7 +1741,7 @@ export async function tally_vote_results(
         throw new Error("can't access actual_updated_match in order to");
       }
 
-      const game_is_over = await victory_check(actual_updated_match);
+      const game_is_over = await victory_check(db, actual_updated_match);
       if (game_is_over === false) {
         await set_up_next_election(db, actual_updated_match);
       }
