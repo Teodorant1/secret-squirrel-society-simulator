@@ -1651,6 +1651,7 @@ export async function tally_vote_results(
           failed_elections: 0,
           deck: new_deck,
           president_laws_pile: top_of_the_deck,
+          scheduled_for_deletion: false,
         })
         .where(eq(match.id, actual_updated_election.match))
         .returning();
