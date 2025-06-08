@@ -61,8 +61,7 @@ export default function HomePage() {
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <GlitchText
-            text="Secret-Squirrel-Society-S
-            imulator//"
+            text="Secret-Squirrel-Society-Simulator//"
             as="h1"
             glitchFactor={1.5}
             className="font-mono"
