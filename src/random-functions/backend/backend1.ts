@@ -10,6 +10,7 @@ import {
   substageEnum,
   vote,
   type MatchWithPlayers,
+  cronjob_Runs,
 } from "@/server/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { CanBeNominated_for_chancellor } from "../frontend/frontend1";
@@ -2171,6 +2172,30 @@ export async function create_game(
   // },
   // );
 }
+
+export async function shouldRunJob(db: Transaction) {
+  const latestRun = await db.query.cronjob_Runs.findFirst({
+    columns: { runDate: true },
+    orderBy: [desc(cronjob_Runs.runDate)],
+  });
+
+  if (!latestRun) {
+    return true;
+  }
+
+  console.log("latestRun", latestRun);
+
+  const currentTime = new Date();
+  console.log("currentTime", currentTime);
+
+  const lastRunTime = new Date(latestRun.runDate);
+
+  const minutesDifference =
+    (currentTime.getTime() - lastRunTime.getTime()) / (1000 * 60);
+
+  return minutesDifference >= 150;
+}
+
 export async function GetAvailableGames() {
   const available_games = await db.query.match.findMany({
     where: eq(match.has_started, false),

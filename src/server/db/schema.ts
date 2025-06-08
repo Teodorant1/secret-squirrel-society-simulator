@@ -19,7 +19,10 @@ export const createTable = pgTableCreator(
 );
 
 export const cronjob_Runs = createTable("cronjob_Runs", {
-  runDate: timestamp("runDate", { withTimezone: true }).primaryKey().notNull(),
+  runDate: timestamp("runDate", { withTimezone: true })
+    .primaryKey()
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
 });
 
 // export const waiting_on_enum = pgEnum("player", [

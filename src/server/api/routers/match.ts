@@ -318,13 +318,15 @@ export const MatchRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       try {
         const info = await ctx.db.transaction(async (tx) => {
-          return await get_info_on_game(
+          const innerinfo = await get_info_on_game(
             tx,
             input.match_id,
             ctx.session.user.username,
             input.match_password,
             input.player_password,
           );
+
+          return innerinfo;
         });
 
         // const current_date = new Date();
