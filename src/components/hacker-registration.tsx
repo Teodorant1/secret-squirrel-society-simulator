@@ -124,6 +124,11 @@ export function HackerRegistration({ className }: { className?: string }) {
                   text="Enter your credentials to join the network"
                   className="font-mono text-sm text-blue-300/80"
                   typingSpeed={20}
+                />{" "}
+                <TerminalText
+                  text="All fields must be at least 2 symbols long"
+                  className="font-mono text-sm text-blue-300/80"
+                  typingSpeed={20}
                 />
                 <Label className="flex items-center gap-2 font-mono text-blue-300">
                   <User className="h-4 w-4" />
