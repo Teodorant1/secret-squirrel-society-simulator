@@ -14,6 +14,10 @@ const links = [
   { href: "/spy/museum", label: "Museum" },
   { href: "/spy/AI", label: "AI Interface" },
   { href: "/spy/faq", label: "FAQ" },
+  {
+    href: "https://multiversal-mishaps.vercel.app/about-creator",
+    label: "About creator (leads to different website)",
+  },
 ];
 
 export function NavMenu() {
