@@ -54,16 +54,10 @@ export function NavMenu() {
         {session ? (
           <>
             <Link
-              href="/spy/profile"
-              className="whitespace-nowrap p-2 text-sm transition-colors hover:text-primary"
-            >
-              {"Profile - " + session.user.username}
-            </Link>
-            <Link
               href="/api/auth/signout"
               className="whitespace-nowrap p-2 text-sm transition-colors hover:text-red-500"
             >
-              Logout
+              Logout - {session.user.username}
             </Link>
           </>
         ) : (
