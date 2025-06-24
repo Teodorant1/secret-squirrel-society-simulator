@@ -4,9 +4,12 @@ import { db } from "@/server/db";
 import { cronjob_Runs, match } from "@/server/db/schema";
 import { shouldRunJob } from "@/random-functions/backend/backend1";
 import { eq } from "drizzle-orm";
+import { cookies } from "next/headers";
+import { createClient } from "@/utils/supabase/server";
 
 export async function POST(request: Request) {
-  console.log("attempting cron job to clean the DB");
+  const supabase = await createClient(cookies());
+
   try {
     const Did_run_cronjob = await db.transaction(async (tx) => {
       const should_run_cronJob = await shouldRunJob(tx);
@@ -21,6 +24,18 @@ export async function POST(request: Request) {
         await db.insert(cronjob_Runs).values({
           runDate: currentTime,
         });
+
+        const data0 = await supabase
+          .from("secret-squirrel-society-simulator_cronjob_Runs")
+          .insert([{ runDate: currentTime.toDateString() }])
+          .select();
+
+        const data = await supabase
+          .from("secret-squirrel-society-simulator_cronjob_Runs")
+          .select("*");
+
+        console.log(data0, data);
+
         return true;
       } else {
         return false;
