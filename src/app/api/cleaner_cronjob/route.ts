@@ -8,7 +8,18 @@ import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 
 export async function POST(request: Request) {
+  const currentTime = new Date();
   const supabase = await createClient(cookies());
+  const data0 = await supabase
+    .from("secret-squirrel-society-simulator_cronjob_Runs")
+    .insert([{ runDate: currentTime.toDateString() }])
+    .select();
+
+  const data = await supabase
+    .from("secret-squirrel-society-simulator_cronjob_Runs")
+    .select("*");
+
+  console.log(data0, data);
 
   try {
     const Did_run_cronjob = await db.transaction(async (tx) => {
@@ -20,21 +31,9 @@ export async function POST(request: Request) {
           scheduled_for_deletion: true,
         });
 
-        const currentTime = new Date();
         await db.insert(cronjob_Runs).values({
           runDate: currentTime,
         });
-
-        const data0 = await supabase
-          .from("secret-squirrel-society-simulator_cronjob_Runs")
-          .insert([{ runDate: currentTime.toDateString() }])
-          .select();
-
-        const data = await supabase
-          .from("secret-squirrel-society-simulator_cronjob_Runs")
-          .select("*");
-
-        console.log(data0, data);
 
         return true;
       } else {
