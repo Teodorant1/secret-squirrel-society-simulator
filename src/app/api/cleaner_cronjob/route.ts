@@ -21,7 +21,7 @@ export async function POST(request: Request) {
         const supabase = await createClient(cookies());
         const data0 = await supabase
           .from("secret-squirrel-society-simulator_cronjob_Runs")
-          .insert([{ runDate: currentTime.toDateString() }])
+          .insert([{ runDate: currentTime.toISOString() }])
           .select();
 
         const data = await supabase
