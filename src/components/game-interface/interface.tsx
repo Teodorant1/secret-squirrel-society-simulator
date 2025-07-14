@@ -102,6 +102,26 @@ export default function Game_Interface({
     return false;
   }
 
+  function Is_blue_progress_card(
+    isActive: boolean,
+    type: "primary" | "destructive",
+  ) {
+    if (type === "primary" && isActive === true) {
+      return true;
+    }
+    return false;
+  }
+
+  function Is_red_progress_card(
+    isActive: boolean,
+    type: "primary" | "destructive",
+  ) {
+    if (type === "destructive" && isActive === true) {
+      return true;
+    }
+    return false;
+  }
+
   function get_badge_list() {
     const badge_list: { all_mentioned_words: string[]; role: string }[] = [];
 
@@ -697,10 +717,10 @@ export default function Game_Interface({
     return (
       <Card className="relative overflow-hidden border-blue-500/30 bg-black/50 p-6 backdrop-blur-sm">
         {/* Scanline animation */}
-        <motion.div
+        <div
           className="absolute inset-0 h-1 w-full bg-blue-400/10"
-          animate={{ top: ["0%", "100%", "0%"] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+          // animate={{ top: ["0%", "100%", "0%"] }}
+          // transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
         />
         <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold">
           <Info className="h-5 w-5 text-blue-400" />
@@ -714,10 +734,10 @@ export default function Game_Interface({
             />
           )}
           <GlitchText text={"GAME STATUS//"} className="font-mono" />
-          <motion.div
+          <div
             className="ml-2 h-1.5 w-1.5 rounded-full bg-blue-400"
-            animate={{ opacity: [0.4, 1, 0.4] }}
-            transition={{ duration: 2, repeat: Infinity }}
+            // animate={{ opacity: [0.4, 1, 0.4] }}
+            // transition={{ duration: 2, repeat: Infinity }}
           />
         </h3>
 
@@ -812,10 +832,10 @@ export default function Game_Interface({
   function VotingCard() {
     return (
       <Card className="relative overflow-hidden border-yellow-500/30 bg-black/50 p-6 backdrop-blur-sm">
-        {/* <motion.div
+        {/* <div
           className="absolute inset-0 h-1 w-full bg-yellow-400/10"
-          animate={{ top: ["0%", "100%", "0%"] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+          // animate={{ top: ["0%", "100%", "0%"] }}
+          // transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
         /> */}
         <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold">
           <Vote className="h-5 w-5 text-yellow-400" />
@@ -861,10 +881,10 @@ export default function Game_Interface({
   function PreviousElectionsCard() {
     return (
       <Card className="relative overflow-hidden border-green-500/30 bg-black/50 p-6 backdrop-blur-sm">
-        {/* <motion.div
+        {/* <div
           className="absolute inset-0 h-1 w-full bg-green-400/10"
-          animate={{ top: ["0%", "100%", "0%"] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+          // animate={{ top: ["0%", "100%", "0%"] }}
+          // transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
         /> */}
         <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold">
           <History className="h-5 w-5 text-green-400" />
@@ -937,12 +957,12 @@ export default function Game_Interface({
     return (
       <Card className="relative overflow-hidden border-blue-500/30 bg-black/50 p-6 backdrop-blur-sm">
         {/* Scan line animation
-        <motion.div
+        <div
           className="absolute inset-0 h-1 w-full bg-blue-400/10"
-          animate={{
+          // animate={{
             top: ["0%", "100%", "0%"],
           }}
-          transition={{
+          // transition={{
             duration: 3,
             repeat: Number.POSITIVE_INFINITY,
             ease: "linear",
@@ -953,10 +973,10 @@ export default function Game_Interface({
 
           <GlitchText text={"PLAYERS//"} className="font-mono" />
           {/* Add small warning indicator */}
-          <motion.div
+          <div
             className="ml-2 h-1.5 w-1.5 rounded-full bg-red-600"
-            animate={{ opacity: [0.6, 1, 0.6] }}
-            transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
+            // animate={{ opacity: [0.6, 1, 0.6] }}
+            // transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
           />
         </h3>
         <div className="space-y-2">
@@ -968,20 +988,20 @@ export default function Game_Interface({
                 match_query.data?.game_info?.player_order.length > 0 &&
                 match_query.data?.game_info?.player_order.map(
                   (agent, index) => (
-                    <motion.div
+                    <div
                       key={index}
-                      whileHover={{
-                        scale: 1.01,
-                        transition: { duration: 0.2 },
-                      }}
+                      // whileHover={{
+                      //   scale: 1.01,
+                      //   transition: { duration: 0.2 },
+                      // }}
                       className="group"
                     >
                       <Card className="relative overflow-hidden border-blue-500/20 bg-black/70">
-                        {/* <motion.div
+                        {/* <div
                           className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent"
                           initial={{ x: "100%" }}
-                          whileHover={{ x: "0%" }}
-                          transition={{ duration: 0.8, ease: "easeOut" }}
+                          // whileHover={{ x: "0%" }}
+                          // transition={{ duration: 0.8, ease: "easeOut" }}
                         /> */}
                         <div className="relative p-4">
                           <div className="flex items-center justify-between font-mono">
@@ -1023,7 +1043,7 @@ export default function Game_Interface({
                           </div>
                         </div>
                       </Card>
-                    </motion.div>
+                    </div>
                   ),
                 )}
             </div>
@@ -1061,10 +1081,10 @@ export default function Game_Interface({
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {policies.map((policy, index) => (
-            <motion.div
+            <div
               key={index}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.98 }}
+              // whileHover={{ scale: 1.03 }}
+              // whileTap={{ scale: 0.98 }}
               className="group relative"
             >
               <Card
@@ -1086,11 +1106,13 @@ export default function Game_Interface({
                       policy === "fascist" ? "text-red-100" : "text-blue-100"
                     }`}
                   >
-                    {policy === "liberal"
-                      ? match_query.data?.game_info?.liberal_faction_name +
-                        " policy "
-                      : match_query.data?.game_info?.fascist_faction_name +
-                        " policy "}
+                    {isLoading
+                      ? "..."
+                      : policy === "liberal"
+                        ? match_query.data?.game_info?.liberal_faction_name +
+                          " policy"
+                        : match_query.data?.game_info?.fascist_faction_name +
+                          " policy"}
                   </span>
                   <span className="text-xs text-white/50 group-hover:text-white/80">
                     {match_query.data?.game_info?.chancellor ===
@@ -1100,7 +1122,7 @@ export default function Game_Interface({
                   </span>
                 </div>
               </Card>
-            </motion.div>
+            </div>
           ))}
         </div>
         <div>{should_show_veto_button() && <Veto_buttons />}</div>
@@ -1156,44 +1178,44 @@ export default function Game_Interface({
     return (
       <Card className="relative overflow-hidden border-blue-500/30 bg-black/50 p-6 backdrop-blur-sm">
         {/* Scan line animation */}
-        <motion.div
+        <div
           className="absolute inset-0 h-1 w-full bg-blue-400/10"
-          animate={{
-            top: ["0%", "100%", "0%"],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Number.POSITIVE_INFINITY,
-            ease: "linear",
-          }}
+          // // animate={{
+          //   top: ["0%", "100%", "0%"],
+          // }}
+          // // transition={{
+          //   duration: 3,
+          //   repeat: Number.POSITIVE_INFINITY,
+          //   ease: "linear",
+          // }}
         />
 
         <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold">
           <FileText className="h-5 w-5 text-blue-400" />
           <GlitchText text={title} className="font-mono" />
           {/* Add small warning indicator */}
-          <motion.div
+          <div
             className="ml-2 h-1.5 w-1.5 rounded-full bg-red-600"
-            animate={{ opacity: [0.6, 1, 0.6] }}
-            transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
+            // animate={{ opacity: [0.6, 1, 0.6] }}
+            // transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
           />
         </h3>
         <div className="space-y-2">
           {match_query.data?.game_info?.player_intel.map((item, index) => (
-            <motion.div
+            <div
               key={index}
-              whileHover={{
-                scale: 1.01,
-                transition: { duration: 0.2 },
-              }}
+              // // whileHover={{
+              //   scale: 1.01,
+              //   transition: { duration: 0.2 },
+              // }}
               className="group"
             >
               <Card className="relative overflow-hidden border-blue-500/20 bg-black/70">
-                <motion.div
+                <div
                   className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent"
-                  initial={{ x: "100%" }}
-                  whileHover={{ x: "0%" }}
-                  transition={{ duration: 0.8, ease: "easeOut" }}
+                  //   initial={{ x: "100%" }}
+                  // whileHover={{ x: "0%" }}
+                  // transition={{ duration: 0.8, ease: "easeOut" }}
                 />
                 <div className="relative p-4">
                   <div className="font-mono text-sm text-blue-300/80">
@@ -1201,7 +1223,7 @@ export default function Game_Interface({
                   </div>
                 </div>
               </Card>
-            </motion.div>
+            </div>
           ))}
         </div>
       </Card>
@@ -1224,20 +1246,20 @@ export default function Game_Interface({
     return (
       <Card className="relative overflow-hidden border-blue-500/30 bg-black/50 p-6 backdrop-blur-sm">
         {/* Data stream animation */}
-        <motion.div className="absolute bottom-0 left-0 right-0 h-[1px] bg-blue-400/30" />
+        <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-blue-400/30" />
 
         <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold">
           <Icon className="h-5 w-5 text-blue-400" />
           <GlitchText text={title} className="font-mono" />
         </h3>
         <Progress value={progress} className="h-2 bg-blue-950/50">
-          <motion.div
+          <div
             className={`h-full ${type === "primary" ? "bg-blue-500" : "bg-red-500"}`}
-            initial={false}
-            animate={{
-              width: `${progress}%`,
-            }}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
+            // initial={false}
+            // // animate={{
+            //   width: `${progress}%`,
+            // }}
+            // // transition={{ duration: 0.5, ease: "easeInOut" }}
           />
         </Progress>
         <div className="mt-4 space-y-2">
@@ -1245,9 +1267,9 @@ export default function Game_Interface({
             const isActive = index + 1 <= progress;
 
             return (
-              <motion.div
+              <div
                 key={index} // Use something stable and unique
-                whileHover={{ scale: 1.02 }}
+                // whileHover={{ scale: 1.02 }}
                 className="group"
               >
                 <Card
@@ -1264,7 +1286,7 @@ export default function Game_Interface({
                     </p>
                   </div>
                 </Card>
-              </motion.div>
+              </div>
             );
           })}
         </div>
@@ -1279,10 +1301,10 @@ export default function Game_Interface({
         </div>
       )}
       <div className="container relative z-10 mx-auto space-y-8 py-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+        <div
+          //    initial={{ opacity: 0, y: 20 }}
+          // animate={{ opacity: 1, y: 0 }}
+          // transition={{ duration: 0.8 }}
           className="mb-8 text-center"
         >
           <div className="flex items-center justify-center gap-2">
@@ -1292,12 +1314,12 @@ export default function Game_Interface({
               className="mb-4 font-mono text-4xl font-bold tracking-tight"
               glitchFactor={1.5}
             />
-            <motion.div
-              animate={{
-                scale: [1, 1.2, 1],
-                opacity: [0.7, 1, 0.7],
-              }}
-              transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY }}
+            <div
+              // animate={{
+              // scale: [1, 1.2, 1],
+              // opacity: [0.7, 1, 0.7],
+              // }}
+              // transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY }}
               className={`h-3 w-3 rounded-full ${
                 systemStatus === "online"
                   ? "bg-blue-500"
@@ -1312,7 +1334,7 @@ export default function Game_Interface({
             className="text-lg text-blue-300/80"
             typingSpeed={20}
           />
-        </motion.div>
+        </div>
         {/* <button
           className="m-5 bg-black p-5 text-white"
           onClick={() => {
@@ -1332,11 +1354,11 @@ export default function Game_Interface({
         </button> */}
 
         {ShowStartButton() && (
-          <motion.div
+          <div
             className="flex flex-col justify-center gap-4 sm:flex-row"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
+            // initial={{ opacity: 0, y: 20 }}
+            // animate={{ opacity: 1, y: 0 }}
+            // transition={{ duration: 0.5, delay: 0.6 }}
           >
             <Button
               size="lg"
@@ -1349,25 +1371,25 @@ export default function Game_Interface({
                 <Shield className="h-4 w-4" />
                 <span>START_GAME//</span>
               </span>
-              <motion.div
+              <div
                 className="absolute inset-0 bg-blue-400/20"
-                animate={{
-                  y: ["100%", "-100%"],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Number.POSITIVE_INFINITY,
-                  ease: "linear",
-                }}
+                // animate={{
+                //   y: ["100%", "-100%"],
+                // }}
+                // transition={{
+                //   duration: 2,
+                //   repeat: Number.POSITIVE_INFINITY,
+                //   ease: "linear",
+                // }}
               />
             </Button>
-          </motion.div>
+          </div>
         )}
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
+        <div
+          //    initial={{ opacity: 0 }}
+          // animate={{ opacity: 1 }}
+          // transition={{ duration: 0.8 }}
           className="grid gap-6 md:grid-cols-2"
         >
           {match_query.data && <InfoBox />}
@@ -1404,7 +1426,7 @@ export default function Game_Interface({
           )}
 
           {match_query.data && show_ongoing_election() && <VotingCard />}
-        </motion.div>
+        </div>
         {match_query.data?.game_info?.fascist_laws &&
           match_query.data?.game_info?.liberal_laws && (
             <div className="grid gap-6 md:grid-cols-2">
@@ -1434,16 +1456,16 @@ export default function Game_Interface({
 
         <Card className="relative overflow-hidden border-blue-500/30 bg-black/50 p-6 backdrop-blur-sm">
           {/* Terminal animation */}
-          <motion.div
+          <div
             className="absolute inset-0 h-1 w-full bg-blue-400/10"
-            animate={{
-              top: ["0%", "100%", "0%"],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Number.POSITIVE_INFINITY,
-              ease: "linear",
-            }}
+            // // animate={{
+            //   top: ["0%", "100%", "0%"],
+            // }}
+            // // transition={{
+            //   duration: 3,
+            //   repeat: Number.POSITIVE_INFINITY,
+            //   ease: "linear",
+            // }}
           />
 
           <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold">
@@ -1455,12 +1477,12 @@ export default function Game_Interface({
           </h3>
           <div className="grid gap-4 md:grid-cols-2">
             {CLASSIFIED_INFO.map((info, index) => (
-              <motion.div
+              <div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.02 }}
+                //    initial={{ opacity: 0, y: 20 }}
+                // animate={{ opacity: 1, y: 0 }}
+                // transition={{ delay: index * 0.1 }}
+                // whileHover={{ scale: 1.02 }}
                 className="group"
               >
                 <Card className="relative overflow-hidden border-blue-500/20 bg-black/70 p-4">
@@ -1481,18 +1503,18 @@ export default function Game_Interface({
 
                     {/* Add small warning indicator for high clearance levels */}
                     {info.clearance === "Level Omega" && (
-                      <motion.div
+                      <div
                         className="absolute right-0 top-0 h-1.5 w-1.5 rounded-full bg-red-600"
-                        animate={{ opacity: [0.6, 1, 0.6] }}
-                        transition={{
-                          duration: 1.5,
-                          repeat: Number.POSITIVE_INFINITY,
-                        }}
+                        // animate={{ opacity: [0.6, 1, 0.6] }}
+                        // transition={{
+                        // duration: 1.5,
+                        // repeat: Number.POSITIVE_INFINITY,
+                        // }}
                       />
                     )}
                   </div>
                 </Card>
-              </motion.div>
+              </div>
             ))}
           </div>
         </Card>
@@ -1509,12 +1531,12 @@ export default function Game_Interface({
                 {line}
               </div>
             ))}
-            <motion.span
-              animate={{ opacity: [0, 1] }}
-              transition={{ duration: 0.8, repeat: Number.POSITIVE_INFINITY }}
+            <span
+            // animate={{ opacity: [0, 1] }}
+            // transition={{ duration: 0.8, repeat: Number.POSITIVE_INFINITY }}
             >
               _
-            </motion.span>
+            </span>
           </div>
         </Card>
       </div>
