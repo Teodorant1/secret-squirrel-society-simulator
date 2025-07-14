@@ -16,6 +16,10 @@ export const authRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       try {
+        if (input.password.length < 2) {
+          throw new Error("Password too short");
+        }
+
         const existing_user = await ctx.db.query.actual_users.findFirst({
           where: eq(actual_users.email, input.email.trim()),
         });
