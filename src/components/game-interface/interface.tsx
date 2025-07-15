@@ -441,6 +441,15 @@ export default function Game_Interface({
         ]);
       }
     },
+    onError: (err) => {
+      setIsLoading(false);
+      setIsError(true);
+      setErrorText(err.message);
+      setTerminalLines((prev) => [...prev, "> ERROR: Network failure"]);
+    },
+    onSettled: () => {
+      setIsLoading(false);
+    },
   });
 
   const handle_discard_policy = (index: number) => {
