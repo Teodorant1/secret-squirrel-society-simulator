@@ -724,7 +724,7 @@ export default function CustomizePage() {
                     className="rounded-lg border border-blue-500/30 bg-gray-900/50 p-6 backdrop-blur-sm"
                   >
                     <GlitchText
-                      text="TITTLE SETTINGS"
+                      text="TITLE SETTINGS"
                       as="h2"
                       className="mb-4 text-2xl font-bold text-blue-400"
                       intensity="normal"
