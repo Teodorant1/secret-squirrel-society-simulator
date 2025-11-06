@@ -159,6 +159,12 @@ export default function CustomizePage() {
   }
 
   const create_game = api.match.create_game.useMutation({
+    onError: (err) => {
+      setIsLoading(false);
+      console.error("Error posting comment: ", err);
+      setErrorText(err.message);
+      setIsError(true);
+    },
     onSuccess: async (data) => {
       setIsLoading(false);
       if (data.error === false) {
@@ -217,6 +223,12 @@ export default function CustomizePage() {
     });
   };
   const join_game = api.match.join_game.useMutation({
+    onError: (err) => {
+      setIsLoading(false);
+      console.error("Error posting comment: ", err);
+      setErrorText(err.message);
+      setIsError(true);
+    },
     onSuccess: async (data) => {
       setIsLoading(false);
       if (data.error === false) {

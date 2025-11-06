@@ -45,6 +45,12 @@ export function HackerRegistration({ className }: { className?: string }) {
   }, []);
 
   const makeAccount = api.auth.register.useMutation({
+    onError: (err) => {
+      setIsLoading(false);
+      console.error("Error posting comment: ", err);
+      setErrorText(err.message);
+      setIsError(true);
+    },
     onSuccess: async (data) => {
       setIsLoading(false);
       if (data.error === false) {

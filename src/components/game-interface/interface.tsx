@@ -300,6 +300,12 @@ export default function Game_Interface({
   }, []);
 
   const handle_veto = api.match.handle_veto.useMutation({
+    onError: (err) => {
+      setIsLoading(false);
+      console.error("Error posting comment: ", err);
+      setErrorText(err.message);
+      setIsError(true);
+    },
     onSuccess: async (data) => {
       setIsLoading(false);
       if (data.error === false) {
@@ -340,7 +346,12 @@ export default function Game_Interface({
 
   // const test_handle_special_power =
   //   api.match.test_handle_special_power.useMutation({
-  //     onSuccess: async (data) => {
+  //         onError: (err) => {
+  //   console.error("Error posting comment: ", err);
+  //   setErrorText(err.message);
+  //   setIsError(true);
+  // },
+  // onSuccess: async (data) => {
   //       setIsLoading(false);
   //       if (data.error === false) {
   //         setTerminalLines((prev) => [
@@ -383,6 +394,12 @@ export default function Game_Interface({
   // };
 
   const handle_special_power = api.match.handle_special_power.useMutation({
+    onError: (err) => {
+      setIsLoading(false);
+      console.error("Error posting comment: ", err);
+      setErrorText(err.message);
+      setIsError(true);
+    },
     onSuccess: async (data) => {
       setIsLoading(false);
       if (data.error === false) {
@@ -472,6 +489,12 @@ export default function Game_Interface({
   };
 
   const start_game = api.match.start_game.useMutation({
+    onError: (err) => {
+      console.error("Error posting comment: ", err);
+      setErrorText(err.message);
+      setIsError(true);
+      setIsLoading(false);
+    },
     onSuccess: async (data) => {
       setIsLoading(false);
       if (data.error === false) {
@@ -511,6 +534,12 @@ export default function Game_Interface({
 
   const nominate_chancellor_candidate =
     api.match.nominate_chancellor_candidate.useMutation({
+      onError: (err) => {
+        console.error("Error posting comment: ", err);
+        setErrorText(err.message);
+        setIsError(true);
+        setIsLoading(false);
+      },
       onSuccess: async (data) => {
         setIsLoading(false);
         if (data.error === false) {
@@ -550,6 +579,12 @@ export default function Game_Interface({
   };
 
   const vote_in_elections = api.match.vote_in_elections.useMutation({
+    onError: (err) => {
+      console.error("Error posting comment: ", err);
+      setErrorText(err.message);
+      setIsError(true);
+      setIsLoading(false);
+    },
     onSuccess: async (data) => {
       setIsLoading(false);
       if (data.error === false) {

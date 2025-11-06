@@ -1,6 +1,6 @@
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { db } from "../db";
 import { eq } from "drizzle-orm";
 import { actual_users } from "@/server/db/schema";
